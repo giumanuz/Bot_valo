@@ -15,6 +15,7 @@ class Mine:
         self.__lista_culo = []
         self.__lista_fica = []
         self.__lista_tette = []
+        self.__lista_cazzi = []
 
         updater = Updater(token="5284256332:AAHv1djfMG6QQTobd-H_jUDpmsjvMgewpNM", use_context=True)
         dispatcher = updater.dispatcher
@@ -25,10 +26,13 @@ class Mine:
 
         dispatcher.add_handler(MessageHandler(Filters.text, self.handler, pass_user_data=True, run_async=True))
 
-        self.__lista_tette = listdir("./Foto/Tette")
+        self.__lista_cazzi = listdir("./Foto/Cazzi")
+        if '.DS_Store' in self.__lista_cazzi:
+            self.__lista_cazzi.remove('.DS_Store')
+        self.__lista_tette = listdir("./Foto/Cazzi")
         if '.DS_Store' in self.__lista_tette:
             self.__lista_tette.remove('.DS_Store')
-        self.__lista_fica = listdir("./Foto/Fica")
+        self.__lista_tette = listdir("./Foto/Fica")
         if '.DS_Store' in self.__lista_fica:
             self.__lista_fica.remove('.DS_Store')
         self.__lista_culo = listdir("./Foto/Culo")
@@ -90,7 +94,8 @@ class Mine:
 
     def handler(self, update: Update, context: CallbackContext):
         testo = str(update.effective_message.text).lower()
-        print(testo, update.message.from_user.id)     #Alessio 948924104    VMC 723468787    Giulio  1749469345   Cioppy  364369396
+        print(testo,
+              update.message.from_user.id)  # Alessio 948924104   Dag  234103235    VMC 723468787    Giulio  1749469345   Cioppy  364369396    Emanuele  336611257
         message_id = update.effective_message.message_id
 
         insulti = ["sei più inutile di un preservativo per Dag", "sei proprio un Cioppy",
@@ -136,7 +141,6 @@ class Mine:
                         "gingillo", "minchia", "lalla"}
         insieme_negro = {r"neg?r\w", "nigga"}
         insieme_culo = {"culo", "lato ?b", "deretano", "fondoschiena", "natiche", "natica", "sedere"}
-        lista_cazzi = ["./Foto/2.jpeg", "./Foto/3.jpeg", "./Foto/4.jpeg"]
 
         if "grazie" in testo:
             context.bot.send_message(chat_id=update.effective_chat.id, text='Ar cazzo')
@@ -161,7 +165,7 @@ class Mine:
                                   photo=open("./Foto/Fica/" + random.choice(self.__lista_fica), "rb").read())
         if any([x in testo for x in insieme_pene]):  # list comprehension
             context.bot.sendPhoto(chat_id=update.effective_chat.id,
-                                  photo=open(random.choice(lista_cazzi), "rb").read())
+                                  photo=open("./Foto/Cazzi/" + random.choice(self.__lista_cazzi), "rb").read())
         if any([x in testo for x in insieme_tette]):
             context.bot.sendPhoto(chat_id=update.effective_chat.id,
                                   photo=open("./Foto/Tette/" + random.choice(self.__lista_tette), "rb").read())
