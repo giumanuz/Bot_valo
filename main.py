@@ -29,12 +29,15 @@ class Mine:
         self.__lista_cazzi = listdir("./Foto/Cazzi")
         if '.DS_Store' in self.__lista_cazzi:
             self.__lista_cazzi.remove('.DS_Store')
-        self.__lista_tette = listdir("./Foto/Cazzi")
+
+        self.__lista_tette = listdir("./Foto/Tette")
         if '.DS_Store' in self.__lista_tette:
             self.__lista_tette.remove('.DS_Store')
-        self.__lista_tette = listdir("./Foto/Fica")
+
+        self.__lista_fica = listdir("./Foto/Fica")
         if '.DS_Store' in self.__lista_fica:
             self.__lista_fica.remove('.DS_Store')
+
         self.__lista_culo = listdir("./Foto/Culo")
         if '.DS_Store' in self.__lista_culo:
             self.__lista_culo.remove('.DS_Store')
@@ -95,7 +98,7 @@ class Mine:
     def handler(self, update: Update, context: CallbackContext):
         testo = str(update.effective_message.text).lower()
         print(testo,
-              update.message.from_user.id)  # Alessio 948924104   Dag  234103235    VMC 723468787    Giulio  1749469345   Cioppy  364369396    Emanuele  336611257
+              update.message.from_user.id)  # Alessio 948924104   Dag  234103235    VMC 723468787    Giulio  1749469345   Cioppy  364369396    Emanuele  336611257    Daniele  416620811
         message_id = update.effective_message.message_id
 
         insulti = ["sei più inutile di un preservativo per Dag", "sei proprio un Cioppy",
