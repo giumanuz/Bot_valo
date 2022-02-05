@@ -78,20 +78,20 @@ class Mine:
             self.__array_list[riga][colonna] = InlineKeyboardButton(text="❌️", callback_data="-1")
         self.__corrent_player = not self.__corrent_player
         update.callback_query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(self.__array_list))
+        if self.check(self.__array_list, update, context):
+            if self.__corrent_player:
+                context.bot.send_message(chat_id=update.effective_chat.id, text='Ha vinto ⭕')
+            else:
+                context.bot.send_message(chat_id=update.effective_chat.id, text='Ha vinto ❌')
 
-    def handler(self, update, context):
+    def check(self, array, update: Update, context: CallbackContext):
+        numero = int(update.callback_query.data)
+        print(array)  # TODO implementa controllo
+
+    def handler(self, update: Update, context: CallbackContext):
         testo = str(update.effective_message.text).lower()
-        print(testo)
+        print(testo, update.message.from_user.id)     #Alessio 948924104    VMC 723468787    Giulio  1749469345   Cioppy  364369396
         message_id = update.effective_message.message_id
-        # invio di un messaggio
-        # context.bot.send_message(chat_id=update.effective_chat.id,
-        #                                   text="Signore il suo account è già stato attivato correttemente, si rechi al menu per i possibili comandi.",
-        #                                      reply_markup=InlineKeyboardMarkup(
-        #                                          [[InlineKeyboardButton(text="Menu", callback_data="menu")]]))
-        # modifica di un messaggio
-        # context.bot.editMessageText(chat_id=update.effective_chat.id,
-        #                                    message_id=step[1],
-        #                                    text="Comando non riconosciuto, riprova❗")
 
         insulti = ["sei più inutile di un preservativo per Dag", "sei proprio un Cioppy",
                    "tua madre è una grande tartaruga",
@@ -129,16 +129,14 @@ class Mine:
                    "sei così brutto che se i testimoni di geova vengono a casa tua, si chiudono la porta in faccia da soli",
                    "non ti sputo addosso, perché la mia saliva ti disinfetterebbe",
                    "sei così brutto che quando vai al mare viene la bassa marea"]
-        insieme_fica = {"vagina", "fica", "pisella", "fregna", "figa", "utero", "vulva", "gnegna"}
+        insieme_fica = {"vagina", "fica", "pisella", "fregna", "figa", "utero", "vulva", "gnegna", "picchia",
+                        "barattolo della mostarda"}
         insieme_tette = {"tette", "zinne", "seno", "coseno", "poppe", "mammelle", "boops", "boop", "tetta", "zinna"}
         insieme_pene = {"pene", "pisello", "cazzo", "cazzetto", "mazza", "bastone", "arnese", "manganello", "cazzone",
-                        "gingillo", "minchia"}
-        insieme_negro = {"neg?r\w", "nigga"}
+                        "gingillo", "minchia", "lalla"}
+        insieme_negro = {r"neg?r\w", "nigga"}
         insieme_culo = {"culo", "lato ?b", "deretano", "fondoschiena", "natiche", "natica", "sedere"}
         lista_cazzi = ["./Foto/2.jpeg", "./Foto/3.jpeg", "./Foto/4.jpeg"]
-        lista_fiche = ["./Foto/5.jpeg", "./Foto/6.jpeg", "./Foto/6.jpeg", "./Foto/7.jpeg", "./Foto/8.jpeg",
-                       "./Foto/9.jpeg", "./Foto/10.jpeg", "./Foto/11.jpeg", "./Foto/12.jpeg", "./Foto/13.jpeg",
-                       "./Foto/14.jpeg", "./Foto/15.jpeg", "./Foto/16.jpeg", "./Foto/17.jpeg"]
 
         if "grazie" in testo:
             context.bot.send_message(chat_id=update.effective_chat.id, text='Ar cazzo')
