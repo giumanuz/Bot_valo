@@ -42,11 +42,15 @@ class Mine:
         if '.DS_Store' in self.__lista_culo:
             self.__lista_culo.remove('.DS_Store')
         if 'ON_HEROKU' in os.environ:
+            print("SERVER")
+
             updater.start_webhook(listen="0.0.0.0",
                                   port=server_port,
                                   url_path=token,
                                   webhook_url='https://botvalo.herokuapp.com/' + token)
         else:
+            print("LOCAL")
+
             updater.start_polling()
         updater.idle()
 
@@ -200,6 +204,7 @@ class Mine:
 
 
 if __name__ == '__main__':
+    print("ciuao")
     PORT = int(os.environ.get('PORT', 8443))
     bot_token = "5284256332:AAHv1djfMG6QQTobd-H_jUDpmsjvMgewpNM"  # Should NOT be hardcoded here
     Mine(bot_token, PORT)
