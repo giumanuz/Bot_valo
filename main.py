@@ -1,6 +1,6 @@
 import random
 from os import listdir
-
+import os
 from compleanni import compleanni
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Update
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, MessageHandler, Filters, CallbackContext
@@ -9,7 +9,7 @@ from threading import Thread
 
 class Mine:
 
-    def __init__(self):
+    def __init__(self, token, server_port):
         self.__array_list = None
         self.__corrent_player = None
         self.__lista_culo = []
@@ -17,7 +17,7 @@ class Mine:
         self.__lista_tette = []
         self.__lista_cazzi = []
 
-        updater = Updater(token="5284256332:AAHv1djfMG6QQTobd-H_jUDpmsjvMgewpNM", use_context=True)
+        updater = Updater(token=token, use_context=True)
         dispatcher = updater.dispatcher
         dispatcher.add_handler(CommandHandler('menu', self.menu, run_async=True))
 
@@ -41,8 +41,13 @@ class Mine:
         self.__lista_culo = listdir("./Foto/Culo")
         if '.DS_Store' in self.__lista_culo:
             self.__lista_culo.remove('.DS_Store')
-
-        updater.start_polling()
+        if 'ON_HEROKU' in os.environ:
+            updater.start_webhook(listen="0.0.0.0",
+                                  port=server_port,
+                                  url_path=token,
+                                  webhook_url='https://botvalo.herokuapp.com/' + token)
+        else:
+            updater.start_polling()
         updater.idle()
 
     def menu(self, update, context):
@@ -195,4 +200,6 @@ class Mine:
 
 
 if __name__ == '__main__':
-    Mine()
+    PORT = int(os.environ.get('PORT', 8443))
+    bot_token = "5284256332:AAHv1djfMG6QQTobd-H_jUDpmsjvMgewpNM"  # Should NOT be hardcoded here
+    Mine(bot_token, PORT)
