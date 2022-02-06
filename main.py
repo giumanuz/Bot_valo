@@ -47,7 +47,7 @@ class Mine:
             updater.start_webhook(listen="0.0.0.0",
                                   port=server_port,
                                   url_path=token,
-                                  webhook_url='https://botvalo.herokuapp.com/' + token)
+                                  webhook_url='https://botvalo01.herokuapp.com/' + token)
         else:
             print("LOCAL")
 
@@ -204,7 +204,6 @@ class Mine:
 
 
 if __name__ == '__main__':
-    print("ciuao")
     PORT = int(os.environ.get('PORT', 8443))
     bot_token = "5284256332:AAHv1djfMG6QQTobd-H_jUDpmsjvMgewpNM"  # Should NOT be hardcoded here
     Mine(bot_token, PORT)
