@@ -75,25 +75,35 @@ class Mine:
     def update_tris(self, update: Update, context: CallbackContext):
         update.callback_query.answer()
         numero = int(update.callback_query.data)
-        if numero == -1:
+        if numero == -1 or numero == -2:
             return
         riga = numero // 3
         colonna = numero % 3
         if self.__corrent_player:
             self.__array_list[riga][colonna] = InlineKeyboardButton(text="⭕", callback_data="-1")
         else:
-            self.__array_list[riga][colonna] = InlineKeyboardButton(text="❌️", callback_data="-1")
+            self.__array_list[riga][colonna] = InlineKeyboardButton(text="❌️", callback_data="-2")
         self.__corrent_player = not self.__corrent_player
         update.callback_query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(self.__array_list))
-        if self.check(self.__array_list, update, context):
+        if self.check(update, context):
             if self.__corrent_player:
-                context.bot.send_message(chat_id=update.effective_chat.id, text='Ha vinto ⭕')
-            else:
                 context.bot.send_message(chat_id=update.effective_chat.id, text='Ha vinto ❌')
+            else:
+                context.bot.send_message(chat_id=update.effective_chat.id, text='Ha vinto ⭕')
 
-    def check(self, array, update: Update, context: CallbackContext):
-        numero = int(update.callback_query.data)
-        print(array)  # TODO implementa controllo
+    def check(self, update: Update, context: CallbackContext):
+        for i in range(3):
+            if (self.__array_list[i][0].text == self.__array_list[i][1].text == self.__array_list[i][2].text and
+                self.__array_list[i][0].text != '🟢') or (
+                    self.__array_list[0][i].text == self.__array_list[1][i].text == self.__array_list[2][i].text and
+                    self.__array_list[2][i].text != '🟢'):
+                return True
+        if (self.__array_list[0][0].text == self.__array_list[1][1].text == self.__array_list[2][2].text and
+            self.__array_list[2][2].text != '🟢') or (
+                self.__array_list[0][2].text == self.__array_list[1][1].text == self.__array_list[2][0].text and
+                self.__array_list[2][0].text != '🟢'):
+            return True
+        return False
 
     def handler(self, update: Update, context: CallbackContext):
         testo = str(update.effective_message.text).lower()
