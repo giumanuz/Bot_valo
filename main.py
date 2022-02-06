@@ -186,6 +186,6 @@ class Mine:
 
 
 if __name__ == '__main__':
-    PORT = int(os.environ.get('PORT', 5000))
+    PORT = int(os.environ.get('PORT', 80))
     bot_token = "5284256332:AAHv1djfMG6QQTobd-H_jUDpmsjvMgewpNM"  # Should NOT be hardcoded here
     Mine(bot_token, PORT)
