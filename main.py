@@ -40,11 +40,12 @@ class Mine:
             self.__lista_culo.remove('.DS_Store')
         if 'ON_HEROKU' in os.environ:
             updater.start_webhook(listen="0.0.0.0",
-                                  port=int(server_port),
-                                  url_path=token)
-            updater.bot.setWebhook('https://botvalo.herokuapp.com/' + token)
+                                  port=server_port,
+                                  url_path=token,
+                                  webhook_url='https://botvalo.herokuapp.com/' + token)
         else:
             updater.start_polling()
+        updater.idle()
 
     def menu(self, update, context):
         name = update.message.chat.first_name
@@ -186,6 +187,6 @@ class Mine:
 
 
 if __name__ == '__main__':
-    PORT = int(os.environ.get('PORT', 80))
+    PORT = int(os.environ.get('PORT', 8443))
     bot_token = "5284256332:AAHv1djfMG6QQTobd-H_jUDpmsjvMgewpNM"  # Should NOT be hardcoded here
     Mine(bot_token, PORT)
