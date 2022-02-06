@@ -32,7 +32,7 @@ class Mine:
         self.__lista_tette = listdir("./Foto/Cazzi")
         if '.DS_Store' in self.__lista_tette:
             self.__lista_tette.remove('.DS_Store')
-        self.__lista_tette = listdir("./Foto/Fica")
+        self.__lista_tette = listdir("./Foto/FIca")
         if '.DS_Store' in self.__lista_fica:
             self.__lista_fica.remove('.DS_Store')
         self.__lista_culo = listdir("./Foto/Culo")
