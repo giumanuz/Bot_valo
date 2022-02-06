@@ -191,10 +191,10 @@ class Mine:
         if any([x in testo for x in insieme_tette]):
             context.bot.sendPhoto(chat_id=update.effective_chat.id,
                                   photo=open("./Foto/Tette/" + random.choice(self.__lista_tette), "rb").read())
-        if "botvalo" in testo:
-            if "insulta" in testo:
+        if "insulta" in testo:
                 context.bot.send_message(chat_id=update.effective_chat.id,
                                          text=f'Cioppy {random.choice(insulti)}')  # format string
+        if "botvalo" in testo:
             if "è 30l" in testo:
                 context.bot.send_message(chat_id=update.effective_chat.id, text='Per penitenza devi scrivere a Lalla')
 
