@@ -166,6 +166,9 @@ class Mine:
 
         if "grazie" in testo:
             context.bot.send_message(chat_id=update.effective_chat.id, text='Ar cazzo')
+        
+        if "ǝ" in testo:
+            context.bot.send_message(chat_id=update.effective_chat.id, text='Ricchionǝ')
 
         if "apple" in testo:
             context.bot.send_message(chat_id=update.effective_chat.id, text='Apple >>>> Winzoz')
