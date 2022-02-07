@@ -157,7 +157,7 @@ class Mine:
                    "non ti sputo addosso, perché la mia saliva ti disinfetterebbe",
                    "sei così brutto che quando vai al mare viene la bassa marea"]
         insieme_fica = {"vagina", "fica", "pisella", "fregna", "figa", "utero", "vulva", "gnegna", "picchia",
-                        "barattolo della mostarda"}
+                        "barattolo della mostarda","patata","gnagna"}
         insieme_tette = {"tette", "zinne", "seno", "coseno", "poppe", "mammelle", "boops", "boop", "tetta", "zinna"}
         insieme_pene = {"pene", "pisello", "cazzo", "cazzetto", "mazza", "bastone", "arnese", "manganello", "cazzone",
                         "gingillo", "minchia", "lalla"}
