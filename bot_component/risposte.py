@@ -37,8 +37,3 @@ class Risposte:
             if "dettu de derni" in testo:
                 context.bot.send_message(chat_id=update.effective_chat.id,
                                          text='Quannu Cesi ha lu cappello, turna \'ndietro e pija l\'umbrello')
-
-
-def init_risposte(dispatcher):
-    dispatcher.add_handler(MessageHandler(
-        Filters.text, Risposte.command_handler_risposte, pass_user_data=True, run_async=True))

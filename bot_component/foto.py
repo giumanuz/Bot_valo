@@ -37,8 +37,3 @@ class Foto:
         random_photo = directory + random.choice(listdir(directory))
         with open(random_photo, "rb") as photo:
             return photo.read()
-
-
-def init_foto(dispatcher):
-    dispatcher.add_handler(MessageHandler(
-        Filters.text, Foto.command_handler_foto, pass_user_data=True, run_async=True))
