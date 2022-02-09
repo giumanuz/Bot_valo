@@ -23,17 +23,16 @@ def main():
 
     if 'ON_HEROKU' in environment_variables:
         print("SERVER")
-
-        updater.start_webhook(listen="0.0.0.0",
-                              port=SERVER_PORT,
-                              url_path=BOT_TOKEN,
-                              webhook_url=f'https://botvalo01.herokuapp.com/{BOT_TOKEN}')
+        updater.start_webhook(
+          listen="0.0.0.0",
+          port=SERVER_PORT,
+          url_path=BOT_TOKEN,
+          webhook_url=f'https://botvalo01.herokuapp.com/{BOT_TOKEN}'
+        )
     else:
         print("LOCAL")
-
         updater.start_polling()
     updater.idle()
-    pass
 
 
 if __name__ == '__main__':
