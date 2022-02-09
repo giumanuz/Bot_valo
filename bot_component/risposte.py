@@ -29,11 +29,11 @@ class Risposte:
                                   photo="https://www.diag.uniroma1.it/~digiamb/website/Files/foto.jpg",
                                   caption="MMM che manzo")
 
-        if "botvalo" in testo:
-            if "è 30l" in testo:
-                context.bot.send_message(
+        if "è 30l" in testo:
+            context.bot.send_message(
                     chat_id=update.effective_chat.id, text='Per penitenza devi scrivere a Lalla')
 
+        if "botvalo" in testo:
             if "dettu de derni" in testo:
                 context.bot.send_message(chat_id=update.effective_chat.id,
                                          text='Quannu Cesi ha lu cappello, turna \'ndietro e pija l\'umbrello')

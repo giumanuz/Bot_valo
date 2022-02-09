@@ -47,13 +47,17 @@ class Insulti:
 
     @staticmethod
     def command_handler_insulti(update: Update, context: CallbackContext):
+        print("2")
         testo = str(update.effective_message.text).lower()
+        print(testo)
 
         if "insulta" in testo:
+            print("3")
             context.bot.send_message(chat_id=update.effective_chat.id,
                                      text=f'Cioppy {random.choice(lista_insulti)}')
 
 
 def init_insulti(dispatcher):
+    print("1")
     dispatcher.add_handler(MessageHandler(
         Filters.text, Insulti.command_handler_insulti, pass_user_data=True, run_async=True))

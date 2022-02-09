@@ -1,8 +1,6 @@
+from bot_component.gestore import Gestore
 from bot_component.tris import init_tris
 from bot_component.menu import init_menu
-from bot_component.insulti import init_insulti
-from bot_component.risposte import init_risposte
-from bot_component.foto import init_foto
 from os import environ as environment_variables
 from telegram.ext import Updater
 
@@ -16,9 +14,7 @@ def main():
 
     init_menu(dispatcher)
     init_tris(dispatcher)
-    init_foto(dispatcher)
-    init_risposte(dispatcher)
-    init_insulti(dispatcher)
+    Gestore.init(dispatcher)
 
     if 'ON_HEROKU' in environment_variables:
         print("SERVER")
