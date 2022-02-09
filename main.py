@@ -1,7 +1,6 @@
 import random
 from os import listdir
 import os
-from compleanni import compleanni
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Update
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, MessageHandler, Filters, CallbackContext
 from threading import Thread
