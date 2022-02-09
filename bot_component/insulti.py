@@ -1,6 +1,6 @@
 import random
-from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Update
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, MessageHandler, Filters, CallbackContext, Dispatcher
+from telegram import Update
+from telegram.ext import MessageHandler, Filters, CallbackContext
 
 lista_insulti = [
     "sei più inutile di un preservativo per Dag",
@@ -43,15 +43,17 @@ lista_insulti = [
 ]
 
 
-def command_handler_insulti(self, update: Update, context: CallbackContext):
-    testo = str(update.effective_message.text).lower()
+class Insulti:
 
-    if "insulta" in testo:
-        context.bot.send_message(chat_id=update.effective_chat.id,
-                                 text=f'Cioppy {random.choice(lista_insulti)}')  # format string
-    pass
+    @staticmethod
+    def command_handler_insulti(update: Update, context: CallbackContext):
+        testo = str(update.effective_message.text).lower()
+
+        if "insulta" in testo:
+            context.bot.send_message(chat_id=update.effective_chat.id,
+                                     text=f'Cioppy {random.choice(lista_insulti)}')
 
 
 def init_insulti(dispatcher):
     dispatcher.add_handler(MessageHandler(
-        Filters.text, command_handler_insulti, pass_user_data=True, run_async=True))
+        Filters.text, Insulti.command_handler_insulti, pass_user_data=True, run_async=True))

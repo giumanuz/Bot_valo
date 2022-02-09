@@ -4,13 +4,12 @@ from .tris import Tris
 
 
 class Menu:
-
     @staticmethod
     def get_command_name():
         return "menu"
 
     @staticmethod
-    def command_handler_menu(_, update, context):
+    def command_handler_menu(update, context):
         command_list = InlineKeyboardMarkup(
             [[
                 InlineKeyboardButton(
