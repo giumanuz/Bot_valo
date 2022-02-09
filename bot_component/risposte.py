@@ -1,8 +1,8 @@
-from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Update
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, MessageHandler, Filters, CallbackContext, Dispatcher
+from telegram import Update
+from telegram.ext import MessageHandler, Filters, CallbackContext
 
 
-def command_handler(self, update: Update, context: CallbackContext) -> None:
+def command_handler_res(_, update: Update, context: CallbackContext):
     testo = str(update.effective_message.text).lower()
 
     if "grazie" in testo:
@@ -23,7 +23,7 @@ def command_handler(self, update: Update, context: CallbackContext) -> None:
 
     if "paolo" in testo:
         context.bot.sendPhoto(chat_id=update.effective_chat.id,
-                              photo="http://www.diag.uniroma1.it/~digiamb/website/Files/foto.jpg",
+                              photo="https://www.diag.uniroma1.it/~digiamb/website/Files/foto.jpg",
                               caption="MMM che manzo")
 
     if "botvalo" in testo:
@@ -35,10 +35,7 @@ def command_handler(self, update: Update, context: CallbackContext) -> None:
             context.bot.send_message(chat_id=update.effective_chat.id,
                                      text='Quannu Cesi ha lu cappello, turna \'ndietro e pija l\'umbrello')
 
-    pass
-
 
 def init_risposte(dispatcher):
     dispatcher.add_handler(MessageHandler(
-        Filters.text, command_handler, pass_user_data=True, run_async=True))
-    pass
+        Filters.text, command_handler_res, pass_user_data=True, run_async=True))

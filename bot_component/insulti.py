@@ -43,7 +43,7 @@ lista_insulti = [
 ]
 
 
-def command_handler(self, update: Update, context: CallbackContext) -> None:
+def command_handler_insulti(self, update: Update, context: CallbackContext):
     testo = str(update.effective_message.text).lower()
 
     if "insulta" in testo:
@@ -54,5 +54,4 @@ def command_handler(self, update: Update, context: CallbackContext) -> None:
 
 def init_insulti(dispatcher):
     dispatcher.add_handler(MessageHandler(
-        Filters.text, command_handler, pass_user_data=True, run_async=True))
-    pass
+        Filters.text, command_handler_insulti, pass_user_data=True, run_async=True))
