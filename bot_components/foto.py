@@ -6,11 +6,10 @@ from telegram.ext import CallbackContext
 
 insieme_fica = {"vagina", "fica", "pisella", "fregna", "figa", "utero", "vulva", "gnegna", "picchia",
                 "barattolo della mostarda", "patata", "gnagna"}
-insieme_tette = {"tette", "zinne", "seno"
-                                   "poppe", "mammelle", "boops", "boop", "tetta", "zinna"}
+insieme_tette = {"tette", "zinne", "seno",
+                 "poppe", "mammelle", "boobs", "boob", "tetta", "zinna"}
 insieme_pene = {"pene", "pisello", "cazzo", "cazzetto", "mazza", "bastone", "arnese", "manganello",
                 "gingillo", "minchia", "lalla"}
-insieme_negro = {r"neg?r\w", "nigga"}
 insieme_culo = {"culo", "lato b", "ano",
                 "fondoschiena", "natiche", "natica", "sedere"}
 
