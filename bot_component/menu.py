@@ -1,5 +1,6 @@
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import CommandHandler, Dispatcher
+
 from .tris import Tris
 
 
@@ -23,6 +24,6 @@ class Menu:
                                  reply_markup=command_list)
 
 
-def init_menu(dispatcher: Dispatcher) -> None:
+def init_menu(dispatcher: Dispatcher):
     dispatcher.add_handler(CommandHandler(
         Menu.get_command_name(), Menu.command_handler_menu, run_async=True))
