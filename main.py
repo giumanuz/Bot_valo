@@ -1,8 +1,11 @@
-from bot_component.gestore import Gestore
-from bot_component.tris import init_tris
-from bot_component.menu import init_menu
+import logging
 from os import environ as environment_variables
+
 from telegram.ext import Updater
+
+from bot_component.gestore import Gestore
+from bot_component.menu import init_menu
+from bot_component.tris import init_tris
 
 
 def main():
@@ -12,9 +15,11 @@ def main():
     updater = Updater(token=BOT_TOKEN, use_context=True)
     dispatcher = updater.dispatcher
 
+    logging.debug("Init components...")
     init_menu(dispatcher)
     init_tris(dispatcher)
     Gestore.init(dispatcher)
+    logging.debug("Init done.")
 
     if 'ON_HEROKU' in environment_variables:
         print("SERVER")
