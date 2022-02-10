@@ -20,16 +20,16 @@ class Foto:
     def command_handler_foto(cls, update: Update, context: CallbackContext):
         testo = str(update.effective_message.text).lower()
 
-        if any((x in testo for x in insieme_culo)):
+        if testo in insieme_culo:
             context.bot.sendPhoto(chat_id=update.effective_chat.id,
                                   photo=cls.__get_random_photo("culo"))
-        if any((x in testo for x in insieme_fica)):
+        elif testo in insieme_fica:
             context.bot.sendPhoto(chat_id=update.effective_chat.id,
                                   photo=cls.__get_random_photo("fica"))
-        if any((x in testo for x in insieme_pene)):
+        elif testo in insieme_pene:
             context.bot.sendPhoto(chat_id=update.effective_chat.id,
                                   photo=cls.__get_random_photo("cazzi"))
-        if any((x in testo for x in insieme_tette)):
+        elif testo in insieme_tette:
             context.bot.sendPhoto(chat_id=update.effective_chat.id,
                                   photo=cls.__get_random_photo("tette"))
 
