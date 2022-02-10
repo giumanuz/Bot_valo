@@ -13,15 +13,15 @@ class Insulti:
             lista_insulti = json.load(f)
         logging.debug("insulti.json loaded correctly.")
     except json.JSONDecodeError:
-        logging.warning("Unable to load json from file.")
+        logging.error("Unable to load json from file.")
 
-    @staticmethod
-    def command_handler_insulti(update: Update, context: CallbackContext):
+    @classmethod
+    def command_handler_insulti(cls, update: Update, context: CallbackContext):
         testo = str(update.effective_message.text).lower()
 
+        if cls.lista_insulti is None:
+            return
+
         if "insulta" in testo:
-            if Insulti.lista_insulti is None:
-                logging.error("lista_insulti not loaded correctly from json file.")
-                return
             context.bot.send_message(chat_id=update.effective_chat.id,
-                                     text=f'Cioppy {random.choice(Insulti.lista_insulti)}')
+                                     text=f'Cioppy {random.choice(cls.lista_insulti)}')

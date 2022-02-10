@@ -1,9 +1,9 @@
 from telegram import Update
 from telegram.ext import CallbackContext, Dispatcher, MessageHandler, Filters
 
-from bot_component.foto import Foto
-from bot_component.insulti import Insulti
-from bot_component.risposte import Risposte
+from bot_components.foto import Foto
+from bot_components.insulti import Insulti
+from bot_components.risposte import Risposte
 
 
 def _gestisci(update: Update, context: CallbackContext):
