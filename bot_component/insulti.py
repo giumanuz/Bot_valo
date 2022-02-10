@@ -5,6 +5,7 @@ from telegram.ext import CallbackContext
 
 lista_insulti = json.load(open('./File/insulti.json', 'r'))
 
+
 class Insulti:
     @staticmethod
     def command_handler_insulti(update: Update, context: CallbackContext):

@@ -1,6 +1,6 @@
 import random
 from telegram import Update
-from telegram.ext import MessageHandler, Filters, CallbackContext
+from telegram.ext import CallbackContext
 from os import listdir
 
 insieme_fica = {"vagina", "fica", "pisella", "fregna", "figa", "utero", "vulva", "gnegna", "picchia",

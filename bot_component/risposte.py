@@ -1,5 +1,5 @@
 from telegram import Update
-from telegram.ext import MessageHandler, Filters, CallbackContext
+from telegram.ext import CallbackContext
 
 
 class Risposte:
