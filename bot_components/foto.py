@@ -1,3 +1,4 @@
+import logging
 import random
 from os import listdir
 
@@ -21,20 +22,23 @@ class Foto:
 
         if any((x in testo for x in insieme_culo)):
             context.bot.sendPhoto(chat_id=update.effective_chat.id,
-                                  photo=cls.__get_random_photo("Culo"))
+                                  photo=cls.__get_random_photo("culo"))
         if any((x in testo for x in insieme_fica)):
             context.bot.sendPhoto(chat_id=update.effective_chat.id,
-                                  photo=cls.__get_random_photo("Fica"))
+                                  photo=cls.__get_random_photo("fica"))
         if any((x in testo for x in insieme_pene)):
             context.bot.sendPhoto(chat_id=update.effective_chat.id,
-                                  photo=cls.__get_random_photo("Cazzi"))
+                                  photo=cls.__get_random_photo("cazzi"))
         if any((x in testo for x in insieme_tette)):
             context.bot.sendPhoto(chat_id=update.effective_chat.id,
-                                  photo=cls.__get_random_photo("Tette"))
+                                  photo=cls.__get_random_photo("tette"))
 
     @classmethod
     def __get_random_photo(cls, category: str) -> bytes:
-        directory = f"./Foto/{category}/"
+        directory = f"./resources/photos/{category}/"
         random_photo = directory + random.choice(listdir(directory))
-        with open(random_photo, "rb") as photo:
-            return photo.read()
+        try:
+            with open(random_photo, "rb") as photo:
+                return photo.read()
+        except FileNotFoundError:
+            logging.warning(f"Photo '{random_photo}' not found!")

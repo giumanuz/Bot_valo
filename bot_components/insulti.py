@@ -9,11 +9,13 @@ from telegram.ext import CallbackContext
 class Insulti:
     lista_insulti = None
     try:
-        with open('./File/insulti.json', 'r') as f:
+        with open('./resources/text_files/insulti.json', 'r') as f:
             lista_insulti = json.load(f)
         logging.debug("insulti.json loaded correctly.")
     except json.JSONDecodeError:
         logging.error("Unable to load json from file.")
+    except FileNotFoundError:
+        logging.error("File insulti.json not found.")
 
     @classmethod
     def command_handler_insulti(cls, update: Update, context: CallbackContext):
