@@ -12,6 +12,8 @@ def _gestisci(update: Update, context: CallbackContext):
     Insulti.command_handler_insulti(update, context)
 
 
-def add_text_handlers(dispatcher: Dispatcher):
+def add_message_handlers(dispatcher: Dispatcher):
+    if not Insulti.is_initialized():
+        Insulti.initialize()
     dispatcher.add_handler(MessageHandler(
         Filters.text, _gestisci, pass_user_data=True, run_async=True))
