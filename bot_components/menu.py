@@ -10,7 +10,7 @@ class Menu:
         return "menu"
 
     @staticmethod
-    def command_handler_menu(update, context):
+    def handle_command(update, context):
         command_list = InlineKeyboardMarkup(
             [[
                 InlineKeyboardButton(
@@ -26,4 +26,4 @@ class Menu:
 
 def init_menu(dispatcher: Dispatcher):
     dispatcher.add_handler(CommandHandler(
-        Menu.get_command_name(), Menu.command_handler_menu, run_async=True))
+        Menu.get_command_name(), Menu.handle_command, run_async=True))

@@ -20,7 +20,7 @@ class Tris:
     def get_response_pattern() -> str:
         return r"\d"
 
-    def command_handler_tris(self, update: Update, context: CallbackContext):
+    def handle_command(self, update: Update, context: CallbackContext):
         self.__cells = [
             [
                 InlineKeyboardButton(text="🟢️", callback_data="0"),
@@ -71,7 +71,7 @@ class Tris:
         return (self.__cells[i][0].text == self.__cells[i][1].text == self.__cells[i][2].text
                 and not self.__is_cell_empty(i, 0))
 
-    def response_handler(self, update: Update, context: CallbackContext) -> None:
+    def handle_response(self, update: Update, context: CallbackContext) -> None:
         if self.__cells is None:
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
@@ -110,6 +110,6 @@ class Tris:
 def init_tris(dispatcher: Dispatcher):
     tris = Tris()
     dispatcher.add_handler(CallbackQueryHandler(
-        tris.command_handler_tris, pattern=tris.get_command_pattern(), run_async=True))
+        tris.handle_command, pattern=tris.get_command_pattern(), run_async=True))
     dispatcher.add_handler(CallbackQueryHandler(
-        tris.response_handler, pattern=tris.get_response_pattern()))
+        tris.handle_response, pattern=tris.get_response_pattern()))

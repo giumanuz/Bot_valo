@@ -3,7 +3,7 @@ from os import environ as environment_variables
 
 from telegram.ext import Updater
 
-from bot_components.gestore import add_text_handlers
+from bot_components.gestore import add_message_handlers
 from bot_components.menu import init_menu
 from bot_components.tris import init_tris
 
@@ -12,8 +12,10 @@ BOT_TOKEN_LOCAL = "5147856404:AAHdp2lv0mT_R2oF7BqWgANEGpSQaHiSvsI"
 
 
 def main():
-    SERVER_PORT = int(environment_variables.get('PORT', 8443))
+    SERVER_PORT = get_server_port()
     is_server = 'ON_HEROKU' in environment_variables
+
+    logging.basicConfig(level=logging.INFO)
 
     updater = get_updater(BOT_TOKEN) if is_server else get_updater(BOT_TOKEN_LOCAL)
     dispatcher = updater.dispatcher
@@ -34,11 +36,15 @@ def main():
     updater.idle()
 
 
+def get_server_port():
+    return int(environment_variables.get('PORT', 8443))
+
+
 def init_bot_components(dispatcher):
     logging.debug("Init components...")
     init_menu(dispatcher)
     init_tris(dispatcher)
-    add_text_handlers(dispatcher)
+    add_message_handlers(dispatcher)
     logging.debug("Init done.")
 
 

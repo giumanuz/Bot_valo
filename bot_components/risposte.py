@@ -5,7 +5,7 @@ from telegram.ext import CallbackContext
 class Risposte:
 
     @staticmethod
-    def command_handler_risposte(update: Update, context: CallbackContext):
+    def handle_message(update: Update, context: CallbackContext):
         testo = str(update.effective_message.text).lower()
 
         if "grazie" in testo:
