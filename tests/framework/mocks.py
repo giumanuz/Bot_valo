@@ -14,6 +14,9 @@ class MockBot:
         data = {'chat_id': chat_id, 'text': text}
         self._result.append(data)
 
+    def reset_data(self):
+        self._result = []
+
 
 class MockContext:
     def __init__(self, dispatcher):
