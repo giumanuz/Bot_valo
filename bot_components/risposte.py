@@ -31,9 +31,14 @@ class Risposte:
 
         if "è 30l" in testo:
             context.bot.send_message(
-                    chat_id=update.effective_chat.id, text='Per penitenza devi scrivere a Lalla')
+                chat_id=update.effective_chat.id, text='Per penitenza devi scrivere a Lalla')
 
         if "botvalo" in testo:
             if "dettu de derni" in testo:
                 context.bot.send_message(chat_id=update.effective_chat.id,
                                          text='Quannu Cesi ha lu cappello, turna \'ndietro e pija l\'umbrello')
+
+        # test
+        if "test" in testo and update.effective_chat.id == -1:
+            context.bot.send_message(chat_id=-1,
+                                     text='test')

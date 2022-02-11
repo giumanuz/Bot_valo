@@ -10,8 +10,13 @@ class MockBot:
         data = {'chat_id': chat_id, 'photo': photo}
         self._result.append(data)
 
-    def send_message(self, chat_id=-1, text: str = None):
+    def send_message(self,
+                     chat_id=-1,
+                     text: str = None,
+                     reply_markup=None):
         data = {'chat_id': chat_id, 'text': text}
+        if reply_markup:
+            data['reply_markup'] = reply_markup
         self._result.append(data)
 
     def reset_data(self):
@@ -50,9 +55,9 @@ class MockMessage:
 
 
 class MockUpdate:
-    def __init__(self, message: MockMessage):
+    def __init__(self, message: MockMessage = ""):
         self._message = message
-        self._chat = MockChat
+        self._chat = MockChat()
 
     @property
     def effective_message(self):
@@ -72,6 +77,9 @@ class MockUpdater:
 
 
 class MockChat:
+    def __init__(self, chat_id: int = -1):
+        self._id = chat_id
+
     @property
     def id(self):
-        return -1
+        return self._id
