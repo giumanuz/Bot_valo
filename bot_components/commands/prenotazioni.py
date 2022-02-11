@@ -1,64 +1,45 @@
+import json
+import string
+
 from fpdf import FPDF
+
+testo_dichiarazione = open("dichiarazione.txt", "r").read()
+
+settings = None
+with open("frasi.json", 'r', encoding='UTF-8') as f:
+    settings = json.load(f)
+
+color = settings["color"]
+size = settings["size"]
+texts = settings["texts"]
 
 
 def pdf_main():
     pdf = FPDF()
     pdf.add_page()
-    pdf.set_font("Arial", size=12)
-    pdf.set_text_color(130, 56, 31)
-    pdf.cell(200, 10, txt="Prenotazioni aule per ESAME - ricevuta di prenotazione", ln=1, align="L")
+    pdf.set_font("Arial", "B")
 
-    pdf.set_text_color(0, 0, 0)
-    pdf.set_font("Arial", size=12)
-    pdf.cell(200, 10, txt="FIOCCHI EDOARDO", ln=1, align="L")
+    for riga in texts:
+        aggiungi_riga(pdf, riga)
 
-    pdf.set_text_color(0, 0, 0)
-    pdf.set_font("Arial", size=11)
-    pdf.cell(200, 10, txt="matr.1934851", ln=1, align="L")
+    pdf.output("prenotazione.pdf")
 
-    cellMultiColorName = (
-        {
-            'text': 'EDOARDO FIOCCHI',
-            'color': [0, 0, 0],
-            'font': {
-                'tema': "Arial",
-                'style': "B",
-                'size': 12
-            }
-        },
-        {
-            'text': 'matr.1943520',
-            'color': [0, 0, 0],
-            'font': {
-                'tema' : "Arial",
-                'style': "B",
-                'size' : 11
-            }
-        }
-    )
 
-    currentPointerPosition = 0
-    for diz in cellMultiColorName:
-        pdf.set_x(currentPointerPosition)
-        pdf.set_font(diz["font"]["tema"], style=diz["font"]["style"], size=diz["font"]["size"],)
-        pdf.set_text_color(diz["color"][0], diz["color"][1], diz["color"][2])
-        size = pdf.get_string_width(diz["text"])
-        pdf.cell(size, 10, diz["text"])
-        currentPointerPosition += size + 1
+def aggiungi_riga(pdf: FPDF, riga: str):
+    current_pointer_position = 200
+    for blocchetto in riga:
+        pdf.set_x(current_pointer_position)
+        pdf.set_font("Arial", size=size[blocchetto["size"]])
 
-    # Prenotazioni aule per ESAME - ricevuta di prenotazione
-    # 130 56 31  rosso scuro
+        colore = color[blocchetto["color"]]
+        pdf.set_text_color(colore[0], colore[1], colore[2])
+        lunghezza_blocco = pdf.get_string_width(blocchetto["text"])
 
-    # Date rosso chiaro
-    # 255 0 0
+        testo = blocchetto["text"]
+        # testo = str.format(testo, )
 
-    # blu
-    # 0 0 255
-
-    # blu scuro
-    # 17 85 204
-
-    pdf.output("python.pdf")
+        pdf.cell(lunghezza_blocco, 10, testo)
+        current_pointer_position += lunghezza_blocco + 1
 
 
 if __name__ == '__main__':
