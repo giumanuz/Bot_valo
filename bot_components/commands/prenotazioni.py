@@ -1,11 +1,13 @@
 import json
+import os
+import random
+
+import qrcode
 from fpdf import FPDF
 
-testo_dichiarazione = ""
 with open("dichiarazione.json", 'r', encoding='UTF-8') as f:
     testo_dichiarazione = json.load(f)
 
-settings = None
 with open("frasi.json", 'r', encoding='UTF-8') as f:
     settings = json.load(f)
 
@@ -19,10 +21,19 @@ def pdf_main():
     pdf.add_page()
     pdf.set_font("Arial", "B")
 
+    qr = qrcode.make('1936736' + "," + "10/03/2022" + ",RM02" + "1")
+    type(qr)
+    num=str(random.randint(1, 10000))
+    qr.save(f'{num}.png')
+
+    pdf.image(f'{num}.png', x=80, y=10, w=60, h=60)
+    os.remove(f'{num}.png')
+    pdf.cell(0, 70, ln=1)
+
     for riga in texts:
         aggiungi_riga(pdf, riga)
 
-    pdf.output("prenotazione.pdf")
+    pdf.output(f'{num}.pdf')
 
 
 def aggiungi_riga(pdf: FPDF, riga: str):
