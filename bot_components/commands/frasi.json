@@ -91,7 +91,7 @@
       },
       {
         "text": " - Dalle ore: {inizio}:00 Alle ore {fine}:00",
-        "color": "rosso",
+        "color": "blu",
         "size": "grande"
       }
     ],

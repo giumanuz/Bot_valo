@@ -1,9 +1,9 @@
 import json
-import string
-
 from fpdf import FPDF
 
-testo_dichiarazione = open("dichiarazione.txt", "r").read()
+testo_dichiarazione = ""
+with open("dichiarazione.json", 'r', encoding='UTF-8') as f:
+    testo_dichiarazione = json.load(f)
 
 settings = None
 with open("frasi.json", 'r', encoding='UTF-8') as f:
@@ -26,20 +26,37 @@ def pdf_main():
 
 
 def aggiungi_riga(pdf: FPDF, riga: str):
-    current_pointer_position = 200
-    for blocchetto in riga:
-        pdf.set_x(current_pointer_position)
-        pdf.set_font("Arial", size=size[blocchetto["size"]])
+    for i in range(len(riga)):
+        blocchetto = riga[i]
+        pdf.set_font("Arial", "B", size=size[blocchetto["size"]])
 
         colore = color[blocchetto["color"]]
         pdf.set_text_color(colore[0], colore[1], colore[2])
-        lunghezza_blocco = pdf.get_string_width(blocchetto["text"])
 
         testo = blocchetto["text"]
-        # testo = str.format(testo, )
 
-        pdf.cell(lunghezza_blocco, 10, testo)
-        current_pointer_position += lunghezza_blocco + 1
+        if testo == "{dichiarazione}":
+            for pezzo in testo_dichiarazione:
+                pdf.multi_cell(0, 6, pezzo, 0)
+                pdf.cell(0, 4, "", ln=1)
+            continue
+
+        testo = str.format(testo,
+                           nome="Edoardo Fiocchi",
+                           matricola="1939007",
+                           giorno="12/12/2001",
+                           aula="A6",
+                           edificio="1",
+                           via="ariosto",
+                           collocazione="circonvallazione",
+                           inizio="12",
+                           fine="15")
+
+        ln = 0
+        if i == len(riga) - 1:
+            ln = 1
+
+        pdf.cell(pdf.get_string_width(testo), 8, testo, ln=ln)
 
 
 if __name__ == '__main__':
