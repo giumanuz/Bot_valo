@@ -33,6 +33,22 @@ class Risposte:
             context.bot.send_message(
                 chat_id=update.effective_chat.id, text='Per penitenza devi scrivere a Lalla')
 
+        if "py" in testo or "python" in testo:
+            context.bot.send_message(
+                chat_id=update.effective_chat.id, text='Python merdaaaaaaaaaa')
+
+        if "java" in testo:
+            context.bot.send_message(
+                chat_id=update.effective_chat.id, text='mannaggia ai funtori')
+
+        if "c#" in testo:
+            context.bot.send_message(
+                chat_id=update.effective_chat.id, text='COOL C-Like Object Oriented Language')
+
+        if "banale" in testo or "banalissim" in testo:
+            context.bot.send_message(
+                chat_id=update.effective_chat.id, text='tanto è 30L')
+
         if "botvalo" in testo:
             if "dettu de derni" in testo:
                 context.bot.send_message(chat_id=update.effective_chat.id,
