@@ -1,2 +1,4 @@
 python-telegram-bot==13.8.1
-fpdf
+fpdf~=1.7.2
+
+qrcode~=7.3.1
