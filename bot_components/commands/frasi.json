@@ -1,0 +1,134 @@
+{
+  "color": {
+    "nero": [0, 0, 0],
+    "rosso": [255, 0, 0],
+    "rosso scuro": [130, 56, 31],
+    "blu": [0, 0, 255],
+    "grigio": [157, 158, 160]
+  },
+  "size": {
+    "grande": 12,
+    "medio": 11,
+    "piccolo": 10,
+    "dagos": 8
+  },
+  "texts": [
+    [
+      {
+        "text": "Prenotazioni aule - ricevuta di prenotazione",
+        "color": "rosso scuro",
+        "size": "grande"
+      }
+    ],
+    [
+      {
+        "text": "{nome} ",
+        "color": "nero",
+        "size": "grande"
+      },
+      {
+        "text": "matr.{matricola}",
+        "color": "nero",
+        "size": "medio"
+      }
+    ],
+    [
+      {
+        "text": "Data: ",
+        "color": "nero",
+        "size": "grande"
+      },
+      {
+        "text": "{giorno}",
+        "color": "rosso",
+        "size": "grande"
+      }
+    ],
+    [
+      {
+        "text": "Aula: ",
+        "color": "nero",
+        "size": "grande"
+      },
+      {
+        "text": "AULA {aula}",
+        "color": "rosso",
+        "size": "grande"
+      }
+    ],
+    [
+      {
+        "text": "Edificio: ",
+        "color": "nero",
+        "size": "grande"
+      },
+      {
+        "text": "RM02{edificio}",
+        "color": "rosso",
+        "size": "grande"
+      },
+      {
+        "text": "(",
+        "color": "nero",
+        "size": "piccolo"
+      },
+      {
+        "text": "{via}",
+        "color": "blu",
+        "size": "piccolo"
+      },
+      {
+        "text": " - {collocazione})",
+        "color": "nero",
+        "size": "piccolo"
+      }
+    ],
+    [
+      {
+        "text": "Posto Assegnato: ",
+        "color": "nero",
+        "size": "grande"
+      },
+      {
+        "text": " - Dalle ore: {inizio}:00 Alle ore {fine}:00",
+        "color": "blu",
+        "size": "grande"
+      }
+    ],
+    [
+      {
+        "text": "Fatte salve diverse disposizioni della Facoltà",
+        "color": "grigio",
+        "size": "grande"
+      }
+    ],
+    [
+      {
+        "text": "Seriale nº: 17825011909008",
+        "color": "nero",
+        "size": "medio"
+      }
+    ],
+    [
+      {
+        "text": "DICHIARO",
+        "color": "nero",
+        "size": "grande"
+      }
+    ],
+    [
+      {
+        "text": "{dichiarazione}",
+        "color": "nero",
+        "size": "piccolo"
+      }
+    ],
+    [
+      {
+        "text": "Codice generato con Software TEC-IT",
+        "color": "nero",
+        "size": "dagos"
+      }
+    ]
+  ]
+}

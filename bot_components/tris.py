@@ -7,6 +7,7 @@ class Tris:
     def __init__(self):
         self.__cells = None
         self.__current_player = None
+        self.__winner = 0
 
     @staticmethod
     def get_command_name():

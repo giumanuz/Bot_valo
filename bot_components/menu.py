@@ -1,7 +1,8 @@
-from telegram import InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Update
 from telegram.ext import CommandHandler, Dispatcher
 
-from .tris import Tris
+from bot_components.commands.prenotazioni import init_prenotazioni, Prenotazione
+from bot_components.tris import Tris
 
 
 class Menu:
@@ -16,8 +17,13 @@ class Menu:
                 InlineKeyboardButton(
                     text=Tris.get_command_name(),
                     callback_data=Tris.get_command_pattern()
+                ),
+                InlineKeyboardButton(
+                    text=Prenotazione.get_command_name(),
+                    callback_data=Prenotazione.get_command_name()
                 )
-            ]]
+            ]
+            ]
         )
         context.bot.send_message(chat_id=update.effective_chat.id,
                                  text='Inserisci la scelta',
@@ -27,3 +33,4 @@ class Menu:
 def init_menu(dispatcher: Dispatcher):
     dispatcher.add_handler(CommandHandler(
         Menu.get_command_name(), Menu.handle_command, run_async=True))
+    init_prenotazioni(dispatcher)
