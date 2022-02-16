@@ -1,9 +1,9 @@
-from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Update
+from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import CommandHandler, Dispatcher
 
-from .games.snake import *
-from bot_components.commands.prenotazioni import init_prenotazioni, Prenotazione
-from bot_components.tris import *
+from .commands.prenotazioni import init_prenotazioni, Prenotazione
+from .games.snake import init_snake
+from .tris import Tris, init_tris
 
 
 class Menu:
@@ -21,14 +21,15 @@ class Menu:
                         callback_data=Tris.get_command_pattern()
                     ),
                     InlineKeyboardButton(
-                        text=Prenotazione.get_command_name(),
-                        callback_data=Prenotazione.get_command_name()
+                        text="Snake",
+                        callback_data="snake-callback"
+
                     )
                 ],
                 [
                     InlineKeyboardButton(
-                        text="Snake",
-                        callback_data="snake-callback"
+                        text=Prenotazione.get_command_name(),
+                        callback_data=Prenotazione.get_command_name()
                     )
                 ]
             ]
