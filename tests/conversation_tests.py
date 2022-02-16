@@ -51,6 +51,7 @@ class ConversationTests(unittest.TestCase):
         update = MockUpdateFactory.empty()
         Menu.handle_command(update, self.context)
         res = self.bot.result
+
         self.assertEqual(1, len(res))
         self.assertIn('reply_markup', res[0])
         self.assertIsInstance(res[0]['reply_markup'], InlineKeyboardMarkup)
