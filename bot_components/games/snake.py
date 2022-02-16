@@ -1,8 +1,9 @@
+import logging
 from queue import Queue
 from random import randint
 from typing import Optional
 
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, Message
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, Message, Chat
 from telegram.ext import Dispatcher, CallbackQueryHandler, CallbackContext, Job
 
 
@@ -11,28 +12,38 @@ class CheckableQueue(Queue):
         with self.mutex:
             return item in self.queue
 
+    def __len__(self):
+        with self.mutex:
+            return self.queue.__len__()
+
 
 class Snake:
     active_snake_games = {}
-    # Commands:
+
+    # Commands
     GO_UP = 0
     GO_DOWN = 1
     GO_LEFT = 2
     GO_RIGHT = 3
 
-    # Directions:
+    # Directions
     UP = (0, -1)
     DOWN = (0, 1)
     LEFT = (-1, 0)
     RIGHT = (1, 0)
 
+    # Cell types
     BLANK_CELL = '⬜'
     SNAKE_CELL = '🟩'
+    HEAD_CELL = '🟢'
     FRUIT_CELL = '🟥'
     DEATH_CELL = '💀'
 
-    __SNAKE_GRID_SIZE = 10
-    __SNAKE_GRID_SIZE_GROUP = 7
+    # Snake settings
+    __SNAKE_GRID_SIZE = 8
+    __SNAKE_GRID_SIZE_GROUP = 6
+    __UPDATE_INTERVAL = 1
+    __UPDATE_INTERVAL_GROUP = 3.01  # Must be at least 3
 
     BUTTONS = InlineKeyboardMarkup(
         [[
@@ -43,26 +54,25 @@ class Snake:
             InlineKeyboardButton(text='➡️', callback_data=f'snake-{GO_RIGHT}'),
         ]])
 
+    # Callback handling
+
     @classmethod
     def on_menu_entry_click(cls, update: Update, context: CallbackContext):
+        logging.basicConfig(level=logging.DEBUG)
         chat_id = update.effective_chat.id
         if chat_id not in cls.active_snake_games:
-            from telegram import Chat
             if update.effective_chat.type == Chat.PRIVATE:
                 snake = Snake(chat_id, context, is_group=False)
-                interval = 0.7
+                interval = cls.__UPDATE_INTERVAL
             else:
                 snake = Snake(chat_id, context, is_group=True)
-                interval = 3.05
+                interval = cls.__UPDATE_INTERVAL_GROUP
                 context.bot.send_message(text="Lo snake è lento nei gruppi. Provalo in chat privata!", chat_id=chat_id)
             cls.active_snake_games[chat_id] = snake
-            snake_game_message = context.bot.send_message(
-                chat_id=chat_id,
-                text=snake.to_string(),
-                reply_markup=cls.BUTTONS
-            )
+
+            snake_game_message = cls.send_snake_message(chat_id, context, snake)
             snake.set_message(snake_game_message)
-            job = context.job_queue.run_repeating(snake.update, interval=interval)
+            job = context.job_queue.run_repeating(snake.go, interval=interval)
             snake.set_job(job)
         else:
             context.bot.send_message(
@@ -77,27 +87,38 @@ class Snake:
         snake_game: Snake = cls.active_snake_games.get(chat_id, None)
         if snake_game is None or not snake_game.game_active:
             return
-        snake_game.change_direction(command)
         update.callback_query.answer()
+        snake_game.change_direction(command)
+
+    @classmethod
+    def send_snake_message(cls, chat_id, context, snake):
+        snake_game_message = context.bot.send_message(
+            chat_id=chat_id,
+            text=snake.to_string(),
+            reply_markup=cls.BUTTONS
+        )
+        return snake_game_message
+
+    # Instance init methods
 
     def __init__(self, chat_id: int, context: CallbackContext, is_group: bool = False):
         self.context = context
         self.update_loop_job: Optional[Job] = None
         self.chat_id = chat_id
         self.message: Optional[Message] = None
-
-        self.direction = self.RIGHT
-        self.snake_queue = CheckableQueue()
-        self.pos = (1, 1)
-        self.fruit = (3, 3)
-        self.game_size = self.__SNAKE_GRID_SIZE_GROUP if is_group else self.__SNAKE_GRID_SIZE
-        self.grid = [[self.BLANK_CELL for _ in range(self.game_size)] for _ in range(self.game_size)]
         self.game_active = True
+        self.game_size = self.__SNAKE_GRID_SIZE_GROUP if is_group else self.__SNAKE_GRID_SIZE
+        self.square_size = self.game_size * self.game_size
+        self.grid = [[self.BLANK_CELL for _ in range(self.game_size)] for _ in range(self.game_size)]
+
+        self.snake_queue = CheckableQueue()
+        self.head_pos = (1, 1)
+        self.cur_direction = self.RIGHT
+        self.fruit_pos = None
         self.points = 0
 
-        self.snake_queue.put(self.pos)
-        self._insert_snake_pos_to_grid(self.pos)
-        self._push_fruit_into_grid()
+        self._push_snake_position()
+        self.generate_new_fruit()
 
     def set_job(self, job):
         self.update_loop_job = job
@@ -105,74 +126,98 @@ class Snake:
     def set_message(self, message):
         self.message = message
 
-    def update(self, _):
-        self.go()
-        self.__update_message()
+    # Instance methods
 
-    def go(self):
+    def to_string(self) -> str:
+        return '\n'.join(''.join(x) for x in self.grid)
+
+    def go(self, _):
         self.move_snake()
         if not self.game_active:
             return
-        if self.pos == self.fruit:
-            self.generate_new_fruit()
+        if self.head_pos == self.fruit_pos:
+            self.eat_fruit()
             return
-        self.pop_snake_position()
+        self._pop_snake_position()
+        self.__update_message()
+
+    def move_snake(self):
+        prev_position = self.head_pos
+        old_x, old_y = prev_position
+        dir_x, dir_y = self.cur_direction
+        self.head_pos = (old_x + dir_x, old_y + dir_y)
+        if self.boundary_hit() or self.head_pos in self.snake_queue:
+            self.lose()
+            self._set_death_cell(prev_position)
+            return
+        self._push_snake_position(prev_position)
 
     def change_direction(self, command):
         if command == self.GO_UP:
-            self.direction = self.UP
+            self.cur_direction = self.UP
         elif command == self.GO_DOWN:
-            self.direction = self.DOWN
+            self.cur_direction = self.DOWN
         elif command == self.GO_LEFT:
-            self.direction = self.LEFT
+            self.cur_direction = self.LEFT
         elif command == self.GO_RIGHT:
-            self.direction = self.RIGHT
+            self.cur_direction = self.RIGHT
         else:
             raise ValueError("Command not valid")
 
-    def to_string(self):
-        return '\n'.join((''.join(x) for x in self.grid))
+    def eat_fruit(self):
+        self.add_points()
+        if len(self.snake_queue) == self.square_size:
+            self.win()
+        self.generate_new_fruit()
 
-    def lose(self):
-        self.update_loop_job.schedule_removal()
-        self.game_active = False
-        self.message.edit_reply_markup(reply_markup=None)
-        self.active_snake_games.pop(self.chat_id, None)
+    def generate_new_fruit(self):
+        new_pos = self._get_random_position()
+        while new_pos in self.snake_queue:
+            new_pos = self._get_random_position()
+        self.fruit_pos = new_pos
+        self.__set_grid_cell(self.fruit_pos, self.FRUIT_CELL)
+
+    def boundary_hit(self) -> bool:
+        return any(x < 0 or x >= self.game_size for x in self.head_pos)
+
+    def add_points(self):
+        self.points += 10
+
+    def win(self):
+        self.__deactivate_game()
         self.context.bot.send_message(
-            text="Hai perso!",
+            text=f"⭐ Hai vinto! Complimenti! ⭐\nPunti totali: {self.points}",
             chat_id=self.chat_id
         )
 
-    def move_snake(self):
-        old_x, old_y = self.pos
-        dir_x, dir_y = self.direction
-        self.pos = (old_x + dir_x, old_y + dir_y)
+    def lose(self):
+        self.__deactivate_game()
+        self.context.bot.send_message(
+            text=f"Hai perso!\nPunti totalizzati: {self.points}",
+            chat_id=self.chat_id
+        )
 
-        if self.boundary_hit() or self.pos in self.snake_queue:
-            self.lose()
-            self._set_death_cell(old_x, old_y)
-            return
+    def _push_snake_position(self, prev_position: tuple[int, int] = None):
+        self.snake_queue.put(self.head_pos)
+        self.__set_grid_cell(self.head_pos, self.HEAD_CELL)
+        if prev_position is not None:
+            self.__set_grid_cell(prev_position, self.SNAKE_CELL)
 
-        self.snake_queue.put(self.pos)
-        self._insert_snake_pos_to_grid(self.pos)
-
-    def pop_snake_position(self):
+    def _pop_snake_position(self):
         old_pos = self.snake_queue.get()
-        self._pop_snake_pos_from_grid(old_pos)
+        self.__set_grid_cell(old_pos, self.BLANK_CELL)
 
-    def boundary_hit(self):
-        return any((x < 0 or x >= self.game_size for x in self.pos))
-
-    def generate_new_fruit(self):
-        new_pos = self.__random_position()
-        while new_pos in self.snake_queue:
-            new_pos = self.__random_position()
-        self.fruit = new_pos
-        self._push_fruit_into_grid()
-
-    def __random_position(self) -> tuple[int, int]:
+    def _get_random_position(self) -> tuple[int, int]:
         return randint(0, self.game_size - 1), \
                randint(0, self.game_size - 1)
+
+    def _set_death_cell(self, position: tuple[int, int]):
+        self.__set_grid_cell(position, self.DEATH_CELL)
+        self.__update_message()
+
+    def __set_grid_cell(self, position: tuple[int, int], cell_type: str):
+        x, y = position
+        self.grid[y][x] = cell_type
 
     def __update_message(self):
         reply_markup = self.BUTTONS if self.game_active else None
@@ -181,24 +226,11 @@ class Snake:
             reply_markup=reply_markup
         )
 
-    def add_points(self):
-        self.points += 10
-
-    def _insert_snake_pos_to_grid(self, position: tuple[int, int]):
-        self.__set_grid_cell(position, self.SNAKE_CELL)
-
-    def _pop_snake_pos_from_grid(self, position: tuple[int, int]):
-        self.__set_grid_cell(position, self.BLANK_CELL)
-
-    def _push_fruit_into_grid(self):
-        self.__set_grid_cell(self.fruit, self.FRUIT_CELL)
-
-    def _set_death_cell(self, x, y):
-        self.__set_grid_cell((x, y), self.DEATH_CELL)
-
-    def __set_grid_cell(self, position: tuple[int, int], cell_type: str):
-        x, y = position
-        self.grid[y][x] = cell_type
+    def __deactivate_game(self):
+        self.update_loop_job.schedule_removal()
+        self.game_active = False
+        self.message.edit_reply_markup(reply_markup=None)
+        self.active_snake_games.pop(self.chat_id, None)
 
 
 def init_snake(dispatcher: Dispatcher):
