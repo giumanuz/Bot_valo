@@ -87,8 +87,8 @@ class Snake:
         snake_game: Snake = cls.active_snake_games.get(chat_id, None)
         if snake_game is None or not snake_game.game_active:
             return
-        update.callback_query.answer()
         snake_game.change_direction(command)
+        update.callback_query.answer()
 
     @classmethod
     def send_snake_message(cls, chat_id, context, snake):
@@ -137,6 +137,7 @@ class Snake:
             return
         if self.head_pos == self.fruit_pos:
             self.eat_fruit()
+            self.__update_message()
             return
         self._pop_snake_position()
         self.__update_message()
