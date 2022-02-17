@@ -1,5 +1,4 @@
 import json
-import logging
 import os
 
 import qrcode
@@ -10,19 +9,17 @@ from telegram.ext import CallbackContext, ConversationHandler, CommandHandler, F
 
 
 def remove_file_from_top_directory(filename: str):
-    os.remove(os.path.join(os.path.dirname(__file__), "..", "..", filename))
+    os.remove(os.path.join(os.path.dirname(__file__), "", "..", filename))
 
 
 def load_prenotation_files():
-    dichiarazione_path = os.path.join(os.path.dirname(__file__), "dichiarazione.json")
-    settings_path = os.path.join(os.path.dirname(__file__), "settings_prenotazioni.json")
-
+    path_to_prenotazioni_folder = os.path.join(os.path.dirname(__file__), "..", "resources", "prenotazioni")
+    dichiarazione_path = os.path.join(path_to_prenotazioni_folder, "dichiarazione.json")
+    settings_path = os.path.join(path_to_prenotazioni_folder, "settings_prenotazioni.json")
     with open(dichiarazione_path, 'r', encoding='UTF-8') as f:
         testo_dichiarazione = json.load(f)
-
     with open(settings_path, 'r', encoding='UTF-8') as f:
         settings = json.load(f)
-
     return testo_dichiarazione, settings
 
 
@@ -50,9 +47,6 @@ class Prenotazione:
         self.alle = None
         self.pdf = FPDF()
 
-    def __str__(self):
-        return f"{self.matricola} {self.nome} {self.giorno} {self.aula} {self.edificio} {self.dalle} {self.alle}"
-
     def generate_qr(self) -> str:
         qr = qrcode.make(f"{self.matricola},{self.giorno},RM02{self.edificio}")
         qr_image_file = f"qr-{self.prenotazione_corrente}.png"
@@ -60,35 +54,38 @@ class Prenotazione:
         return qr_image_file
 
     def generate_pdf(self):
+        self.initialize_pdf()
+        self.insert_qr()
+        for riga in self.texts:
+            self.aggiungi_riga(riga)
+        self.pdf.output(f"{self.prenotazione_corrente}.pdf")
+
+    def initialize_pdf(self):
         self.pdf.add_page()
         self.pdf.set_font("Arial", "B")
-        logging.info(f"Prenotazione generata, id: {self.prenotazione_corrente}")
 
+    def insert_qr(self):
         qr_image_file = self.generate_qr()
         self.pdf.image(qr_image_file, x=80, y=10, w=60, h=60)
         remove_file_from_top_directory(qr_image_file)
-        self.pdf.cell(0, 70, ln=1)
-
-        for riga in self.texts:
-            self.aggiungi_riga(riga)
-
-        self.pdf.output(f"{self.prenotazione_corrente}.pdf")
+        self.pdf.cell(0, 65, ln=1)
 
     def aggiungi_riga(self, riga):
-        for i, blocchetto in enumerate(riga):
-            self.set_pdf_style(size=self.text_sizes[blocchetto["size"]],
-                               color=self.text_colors[blocchetto["color"]])
-            testo = blocchetto["text"]
-
+        for i, elemento in enumerate(riga):
+            self.set_pdf_style(size=self.text_sizes[elemento["size"]],
+                               color=self.text_colors[elemento["color"]])
+            testo = elemento["text"]
             if testo == "{dichiarazione}":
                 self.insert_dichiarazione()
                 continue
+            self.write_text_to_pdf(testo)
+        self.pdf.ln()
 
-            testo = self.format_text(testo)
-            new_line = 1 if i == len(riga) - 1 else 0
-            self.pdf.cell(self.pdf.get_string_width(testo), 6, testo, ln=new_line)
-            if "\n" in testo:
-                self.pdf.ln()
+    def write_text_to_pdf(self, testo):
+        testo = self.format_text(testo)
+        self.pdf.cell(self.pdf.get_string_width(testo), 6, testo)
+        if "\n" in testo:
+            self.pdf.ln()
 
     def format_text(self, testo):
         via, collocazione = self.get_collocazione()
@@ -212,7 +209,7 @@ class Prenotazione:
         return ConversationHandler.END
 
     @classmethod
-    def fine(cls, update, context):
+    def annulla_prenotazione(cls, update, context):
         chat_id = update.effective_chat.id
         context.bot.send_message(chat_id=update.effective_chat.id, text="Prenotazione annullata")
         cls.prenotazioni_in_corso.pop(chat_id)
@@ -233,6 +230,6 @@ def init_prenotazioni(dispatcher: Dispatcher):
             5: [MessageHandler(Filters.text & ~Filters.command, Prenotazione.choose_matricola)],
             6: [MessageHandler(Filters.text & ~Filters.command, Prenotazione.send_pdf)]
         },
-        fallbacks=[CommandHandler("quit", Prenotazione.fine)]
+        fallbacks=[CommandHandler("quit", Prenotazione.annulla_prenotazione)]
 
     ))
