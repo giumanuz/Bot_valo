@@ -1,8 +1,6 @@
-from __future__ import annotations
-
 import json
+import logging
 import os
-import random
 
 import qrcode
 from fpdf import FPDF
@@ -11,9 +9,13 @@ from telegram.ext import CallbackContext, ConversationHandler, CommandHandler, F
     CallbackQueryHandler, Dispatcher
 
 
-def fetch_files():
+def remove_file_from_top_directory(filename: str):
+    os.remove(os.path.join(os.path.dirname(__file__), "..", "..", filename))
+
+
+def load_prenotation_files():
     dichiarazione_path = os.path.join(os.path.dirname(__file__), "dichiarazione.json")
-    settings_path = os.path.join(os.path.dirname(__file__), "frasi.json")
+    settings_path = os.path.join(os.path.dirname(__file__), "settings_prenotazioni.json")
 
     with open(dichiarazione_path, 'r', encoding='UTF-8') as f:
         testo_dichiarazione = json.load(f)
@@ -25,16 +27,20 @@ def fetch_files():
 
 
 class Prenotazione:
-    testo_dichiarazione, settings = fetch_files()
+    testo_dichiarazione, settings = load_prenotation_files()
 
-    color = settings["color"]
-    size = settings["size"]
+    text_colors = settings["color"]
+    text_sizes = settings["size"]
     texts = settings["texts"]
 
     prenotazioni_in_corso = {}
 
-    def __init__(self, id_persona):
-        self.id_persona = id_persona
+    prenotazione_corrente = 0
+
+    def __init__(self, id_prenot=None):
+        if id_prenot != -1:
+            raise Exception("Per creare una nuova prenotazione,usa Prenotazione.new_prenotazione()"
+                            "invece di Prenotazione()")
         self.matricola = None
         self.nome = None
         self.giorno = None
@@ -42,23 +48,82 @@ class Prenotazione:
         self.edificio = None
         self.dalle = None
         self.alle = None
+        self.pdf = FPDF()
 
     def __str__(self):
         return f"{self.matricola} {self.nome} {self.giorno} {self.aula} {self.edificio} {self.dalle} {self.alle}"
+
+    def generate_qr(self) -> str:
+        qr = qrcode.make(f"{self.matricola},{self.giorno},RM02{self.edificio}")
+        qr_image_file = f"qr-{self.prenotazione_corrente}.png"
+        qr.save(qr_image_file)
+        return qr_image_file
+
+    def generate_pdf(self):
+        self.pdf.add_page()
+        self.pdf.set_font("Arial", "B")
+        logging.info(f"Prenotazione generata, id: {self.prenotazione_corrente}")
+
+        qr_image_file = self.generate_qr()
+        self.pdf.image(qr_image_file, x=80, y=10, w=60, h=60)
+        remove_file_from_top_directory(qr_image_file)
+        self.pdf.cell(0, 70, ln=1)
+
+        for riga in self.texts:
+            self.aggiungi_riga(riga)
+
+        self.pdf.output(f"{self.prenotazione_corrente}.pdf")
+
+    def aggiungi_riga(self, riga):
+        for i, blocchetto in enumerate(riga):
+            self.set_pdf_style(size=self.text_sizes[blocchetto["size"]],
+                               color=self.text_colors[blocchetto["color"]])
+            testo = blocchetto["text"]
+
+            if testo == "{dichiarazione}":
+                self.insert_dichiarazione()
+                continue
+
+            testo = self.format_text(testo)
+            new_line = 1 if i == len(riga) - 1 else 0
+            self.pdf.cell(self.pdf.get_string_width(testo), 6, testo, ln=new_line)
+            if "\n" in testo:
+                self.pdf.ln()
+
+    def format_text(self, testo):
+        via, collocazione = self.get_collocazione()
+        return str.format(testo,
+                          nome=self.nome, matricola=self.matricola,
+                          giorno=self.giorno,
+                          aula=self.aula, edificio=self.edificio,
+                          via=via, collocazione=collocazione,
+                          inizio=self.dalle, fine=self.alle)
+
+    def insert_dichiarazione(self):
+        for pezzo in self.testo_dichiarazione:
+            self.pdf.multi_cell(0, 6, pezzo, 0)
+            self.pdf.cell(0, 4, "", ln=1)
+
+    def set_pdf_style(self, size, color: tuple[int, int, int]):
+        self.pdf.set_font_size(size)
+        self.pdf.set_text_color(color[0], color[1], color[2])
+
+    def get_collocazione(self):
+        if self.edificio == "1":
+            return "Circonvallazione Tiburtina, 4", "Edificio Marco Polo (ex Poste S. Lorenzo)"
+        elif self.edificio == "5":
+            return "Via Tiburtina, 205", "- Aule (Via Tiburtina)"
+        else:
+            raise Exception("Cannot get here")
 
     @staticmethod
     def get_command_name():
         return "Prenotazione"
 
-    @staticmethod
-    def get_command_pattern():
-        return r"\d"
-
     @classmethod
-    def chooseEdificio(cls, update: Update, _):
+    def choose_edificio(cls, update: Update, _):
         chat_id = update.effective_chat.id
-        id_persona = update.callback_query.from_user.id
-        cls.prenotazioni_in_corso[chat_id] = Prenotazione(id_persona)
+        cls.prenotazioni_in_corso[chat_id] = cls.new_prenotazione()
 
         update.callback_query.answer()
         command_list = InlineKeyboardMarkup(
@@ -71,8 +136,7 @@ class Prenotazione:
                     text="RM025",
                     callback_data="5"
                 )
-            ]
-            ]
+            ]]
         )
         update.callback_query.edit_message_text(text="Scegli Edificio")
         update.callback_query.edit_message_reply_markup(
@@ -80,7 +144,12 @@ class Prenotazione:
         return 0
 
     @classmethod
-    def chooseAula(cls, update: Update, context: CallbackContext):
+    def new_prenotazione(cls):
+        cls.prenotazione_corrente += 1
+        return Prenotazione(-1)
+
+    @classmethod
+    def choose_aula(cls, update: Update, context: CallbackContext):
         chat_id = update.effective_chat.id
         num_edificio = update.callback_query.data
         cls.prenotazioni_in_corso[chat_id].edificio = num_edificio
@@ -88,7 +157,7 @@ class Prenotazione:
         return 1
 
     @classmethod
-    def chooseGiorno(cls, update, context):
+    def choose_giorno(cls, update, context):
         chat_id = update.effective_chat.id
         aula = update.message.text
         cls.prenotazioni_in_corso[chat_id].aula = aula
@@ -96,7 +165,7 @@ class Prenotazione:
         return 2
 
     @classmethod
-    def chooseDalle(cls, update, context):
+    def choose_dalle(cls, update, context):
         chat_id = update.effective_chat.id
         num_giorno = update.message.text
         cls.prenotazioni_in_corso[chat_id].giorno = num_giorno
@@ -104,7 +173,7 @@ class Prenotazione:
         return 3
 
     @classmethod
-    def chooseAlle(cls, update, context):
+    def choose_alle(cls, update, context):
         chat_id = update.effective_chat.id
         num_dalle = update.message.text
         cls.prenotazioni_in_corso[chat_id].dalle = num_dalle
@@ -112,7 +181,7 @@ class Prenotazione:
         return 4
 
     @classmethod
-    def choosePersona(cls, update, context):
+    def choose_persona(cls, update, context):
         chat_id = update.effective_chat.id
         num_alle = update.message.text
         cls.prenotazioni_in_corso[chat_id].alle = num_alle
@@ -120,7 +189,7 @@ class Prenotazione:
         return 5
 
     @classmethod
-    def chooseMatricola(cls, update, context):
+    def choose_matricola(cls, update, context):
         chat_id = update.effective_chat.id
         nome = update.message.text
         cls.prenotazioni_in_corso[chat_id].nome = nome
@@ -128,130 +197,41 @@ class Prenotazione:
         return 6
 
     @classmethod
-    def ultima_funzione(cls, update, context):
+    def send_pdf(cls, update, context):
         chat_id = update.effective_chat.id
         matricola = update.message.text
         cls.prenotazioni_in_corso[chat_id].matricola = matricola
-        num = cls.pdf_main(prenotazione=cls.prenotazioni_in_corso[chat_id])
+        cls.prenotazioni_in_corso[chat_id].generate_pdf()
         cls.prenotazioni_in_corso.pop(chat_id)
 
-        context.bot.sendDocument(chat_id=chat_id, document=open(num + ".pdf", 'rb'))
-        os.remove(num + ".pdf")
+        pdf_file_name = f"{cls.prenotazione_corrente}.pdf"
+        with open(pdf_file_name, 'rb') as pdf_file:
+            context.bot.sendDocument(chat_id=chat_id, document=pdf_file)
+        remove_file_from_top_directory(pdf_file_name)
+
         return ConversationHandler.END
 
     @classmethod
     def fine(cls, update, context):
         chat_id = update.effective_chat.id
-        context.bot.send_message(chat_id=update.effective_chat.id, text="Annullata la prenotazione")
+        context.bot.send_message(chat_id=update.effective_chat.id, text="Prenotazione annullata")
         cls.prenotazioni_in_corso.pop(chat_id)
         return ConversationHandler.END
-
-    @classmethod
-    def pdf_main(cls, prenotazione: Prenotazione) -> str:
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_font("Arial", "B")
-
-        num = cls.crea_qr(prenotazione)
-
-        pdf.image(f'{num}.png', x=80, y=10, w=60, h=60)
-        os.remove(f'{num}.png')
-        pdf.cell(0, 70, ln=1)
-
-        for riga in Prenotazione.texts:
-            cls.aggiungi_riga(pdf, riga, prenotazione)
-
-        pdf.output(f'{num}.pdf')
-        return num
-
-    @classmethod
-    def crea_qr(cls, prenotazione) -> str:
-        matricola = prenotazione.matricola
-        edificio = prenotazione.edificio
-        giorno = prenotazione.giorno
-        qr = qrcode.make(f"{matricola},{giorno},RM02{edificio}")
-        type(qr)
-        num = str(random.randint(1, 10000))
-        qr.save(f'{num}.png')
-        return num
-
-    @classmethod
-    def aggiungi_riga(cls, pdf: FPDF, riga, prenotazione: Prenotazione):
-        matricola = prenotazione.matricola
-        edificio = prenotazione.edificio
-        aula = prenotazione.aula
-        nome = prenotazione.nome
-        dalle = prenotazione.dalle
-        alle = prenotazione.alle
-        giorno = prenotazione.giorno
-        if edificio == "1":
-            via = 'Circonvallazione Tibuertina, 4'
-            collocazione = "Edificio Marco Polo (ex Poste S. Lorenzo)"
-        elif edificio == "5":
-            via = 'Via Tiburtina, 205'
-            collocazione = "- Aule (Via Tiburtina))"
-        else:
-            raise Exception("Cannot get here")
-
-        for i in range(len(riga)):
-            blocchetto = riga[i]
-            pdf.set_font("Arial", "B", size=cls.size[blocchetto["size"]])
-
-            colore = cls.color[blocchetto["color"]]
-            pdf.set_text_color(colore[0], colore[1], colore[2])
-
-            testo = blocchetto["text"]
-
-            if testo == "{dichiarazione}":
-                for pezzo in cls.testo_dichiarazione:
-                    pdf.multi_cell(0, 6, pezzo, 0)
-                    pdf.cell(0, 4, "", ln=1)
-                continue
-
-            testo = str.format(testo,
-                               nome=nome,
-                               matricola=matricola,
-                               giorno=giorno,
-                               aula=aula,
-                               edificio=edificio,
-                               via=via,
-                               collocazione=collocazione,
-                               inizio=dalle,
-                               fine=alle)
-
-            ln = 0
-            if i == len(riga) - 1:
-                ln = 1
-
-            pdf.cell(pdf.get_string_width(testo), 8, testo, ln=ln)
 
 
 def init_prenotazioni(dispatcher: Dispatcher):
     dispatcher.add_handler(ConversationHandler(
-        entry_points=[CallbackQueryHandler(Prenotazione.chooseEdificio, pattern=Prenotazione.get_command_name(),
+        entry_points=[CallbackQueryHandler(Prenotazione.choose_edificio,
+                                           pattern=Prenotazione.get_command_name(),
                                            run_async=True)],
         states={
-            0: [
-                CallbackQueryHandler(Prenotazione.chooseAula, pattern=r"\d")
-            ],
-            1: [
-                MessageHandler(Filters.text & ~Filters.command, Prenotazione.chooseGiorno)
-            ],
-            2: [
-                MessageHandler(Filters.text & ~Filters.command, Prenotazione.chooseDalle)
-            ],
-            3: [
-                MessageHandler(Filters.text & ~Filters.command, Prenotazione.chooseAlle)
-            ],
-            4: [
-                MessageHandler(Filters.text & ~Filters.command, Prenotazione.choosePersona)
-            ],
-            5: [
-                MessageHandler(Filters.text & ~Filters.command, Prenotazione.chooseMatricola)
-            ],
-            6: [
-                MessageHandler(Filters.text & ~Filters.command, Prenotazione.ultima_funzione)
-            ]
+            0: [CallbackQueryHandler(Prenotazione.choose_aula, pattern=r"\d")],
+            1: [MessageHandler(Filters.text & ~Filters.command, Prenotazione.choose_giorno)],
+            2: [MessageHandler(Filters.text & ~Filters.command, Prenotazione.choose_dalle)],
+            3: [MessageHandler(Filters.text & ~Filters.command, Prenotazione.choose_alle)],
+            4: [MessageHandler(Filters.text & ~Filters.command, Prenotazione.choose_persona)],
+            5: [MessageHandler(Filters.text & ~Filters.command, Prenotazione.choose_matricola)],
+            6: [MessageHandler(Filters.text & ~Filters.command, Prenotazione.send_pdf)]
         },
         fallbacks=[CommandHandler("quit", Prenotazione.fine)]
 

@@ -9,13 +9,13 @@
   "size": {
     "grande": 12,
     "medio": 11,
-    "piccolo": 10,
-    "dagos": 8
+    "piccolo": 8,
+    "dagos": 7
   },
   "texts": [
     [
       {
-        "text": "Prenotazioni aule - ricevuta di prenotazione",
+        "text": "Prenotazioni aule - ricevuta di prenotazione\n",
         "color": "rosso scuro",
         "size": "grande"
       }
@@ -68,13 +68,13 @@
         "size": "grande"
       },
       {
-        "text": "(",
+        "text": " (",
         "color": "nero",
         "size": "piccolo"
       },
       {
         "text": "{via}",
-        "color": "blu",
+        "color": "nero",
         "size": "piccolo"
       },
       {
@@ -104,7 +104,7 @@
     ],
     [
       {
-        "text": "Seriale nº: 17825011909008",
+        "text": "Seriale n°: 17825011909008\n",
         "color": "nero",
         "size": "medio"
       }
