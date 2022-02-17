@@ -1,15 +1,23 @@
+import json
+import os
+
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Update
 from telegram.ext import CallbackQueryHandler, CallbackContext, Dispatcher, ConversationHandler
 
 
 class Tris:
-
     def __init__(self):
         self.__cells = None
         self.__current_player = None
-        self.__vittoria=False
-        self.__giocatore_uno= ""
-        self.__giocatore_due= ""
+        self.__vittoria = False
+        self.__giocatore_uno = ""
+        self.__giocatore_due = ""
+        self.diz_persone = {}
+        try:
+            with open("./bot_components/commands/id_persone.json", "r") as file:
+                self.diz_persone = json.load(file)
+        except Exception as e:
+            print(e)
 
     @staticmethod
     def get_command_name():
@@ -91,10 +99,9 @@ class Tris:
             return 1
 
         var = self.gioco_tris(update, context)
-        if var!=ConversationHandler.END:
+        if var != ConversationHandler.END:
             return not var
         return var
-
 
     def handle_response(self, update: Update, context: CallbackContext):
         update.callback_query.answer()
@@ -106,19 +113,19 @@ class Tris:
             return ConversationHandler.END
 
         if self.__giocatore_uno == "":
-            self.__giocatore_uno=update.callback_query.from_user.id
+            self.__giocatore_uno = update.callback_query.from_user.id
         elif self.__giocatore_uno != update.callback_query.from_user.id:
             return 0
 
-        var=self.gioco_tris(update, context)
-        if var!=ConversationHandler.END:
+        var = self.gioco_tris(update, context)
+        if var != ConversationHandler.END:
             return var
         return var
 
     def gioco_tris(self, update: Update, context: CallbackContext):
         update.callback_query.answer()
         numero = int(update.callback_query.data)
-        if numero == -1 or numero == -2 or self.__vittoria==True:
+        if numero == -1 or numero == -2 or self.__vittoria == True:
             return 0
         riga = numero // 3
         colonna = numero % 3
@@ -133,17 +140,25 @@ class Tris:
             reply_markup=InlineKeyboardMarkup(self.__cells))
         if self.__check_tris():
             if self.__current_player:
+                if str(self.__giocatore_uno) not in self.diz_persone:
+                    nome_giocatore = update.callback_query.from_user.first_name
+                else:
+                    nome_giocatore = self.diz_persone[str(self.__giocatore_uno)]
                 context.bot.send_message(
                     chat_id=update.effective_chat.id,
-                    text='Ha vinto ❌'
+                    text=f'Ha vinto {nome_giocatore}'
                 )
             else:
+                if str(self.__giocatore_due) not in self.diz_persone:
+                    nome_giocatore = update.callback_query.from_user.first_name
+                else:
+                    nome_giocatore = self.diz_persone[str(self.__giocatore_due)]
                 context.bot.send_message(
                     chat_id=update.effective_chat.id,
-                    text='Ha vinto ⭕'
+                    text=f'Ha vinto {nome_giocatore}'
                 )
 
-            self.__vittoria=True
+            self.__vittoria = True
             return ConversationHandler.END
         return 1
 
