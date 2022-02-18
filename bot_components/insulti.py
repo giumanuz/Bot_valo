@@ -7,7 +7,7 @@ from telegram import Update
 from telegram.ext import CallbackContext
 
 
-class Insulti:
+def fetch_insulti():
     lista_insulti = None
     path_to_json = path.join(path.dirname(__file__), "..", "resources", "text_files", "insulti.json")
     try:
@@ -18,6 +18,11 @@ class Insulti:
         logging.error("Unable to load json from file.")
     except FileNotFoundError:
         logging.error("File insulti.json not found.")
+    return lista_insulti
+
+
+class Insulti:
+    lista_insulti = fetch_insulti()
 
     @classmethod
     def handle_message(cls, update: Update, context: CallbackContext):
