@@ -4,8 +4,8 @@ from bot_components.foto import Foto
 from bot_components.insulti import Insulti
 from bot_components.menu import Menu
 from bot_components.risposte import Risposte
-from framework.mock_update_factory import MockUpdateFactory
-from framework.mocks import *
+from tests.framework.mock_update_factory import MockUpdateFactory
+from tests.framework.mocks import *
 
 bot = MockBot()
 dispatcher = MockDispatcher(bot)
