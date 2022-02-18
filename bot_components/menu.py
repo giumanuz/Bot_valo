@@ -1,8 +1,8 @@
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import CommandHandler, Dispatcher
 
-from .commands.prenotazioni import init_prenotazioni, Prenotazione
 from .games.snake import init_snake
+from .prenotazioni import init_prenotazioni, Prenotazione
 from .tris import Tris, init_tris
 
 

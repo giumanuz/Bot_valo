@@ -115,3 +115,5 @@ dmypy.json
 .idea/
 
 *.DS_Store
+
+_alt_local_main.py
