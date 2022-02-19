@@ -228,4 +228,3 @@ def init_tris(dispatcher: Dispatcher):
         per_user=False,
         per_message=False
     ))
-
