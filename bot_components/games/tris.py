@@ -6,10 +6,10 @@ from telegram.ext import CallbackQueryHandler, CallbackContext, Dispatcher, Conv
 
 from bot_components.utils.os_utils import get_absolute_path
 
-text = '🟢'
-
 
 class Tris:
+    EMPTY_CELL = '🟢'
+
     diz_persone = {}
 
     def __init__(self):
@@ -20,33 +20,25 @@ class Tris:
         self.giocatore_due = ""
 
     @staticmethod
-    def get_command_name():
-        return "Tris"
-
-    @staticmethod
-    def get_command_pattern() -> str:
+    def callback_id():
         return "tris"
-
-    @staticmethod
-    def get_response_pattern() -> str:
-        return r"\d"
 
     def handle_command(self, update: Update, context: CallbackContext):
         self.cells = [
             [
-                InlineKeyboardButton(text=text, callback_data="0"),
-                InlineKeyboardButton(text=text, callback_data="1"),
-                InlineKeyboardButton(text=text, callback_data="2")
+                InlineKeyboardButton(text=self.EMPTY_CELL, callback_data="0"),
+                InlineKeyboardButton(text=self.EMPTY_CELL, callback_data="1"),
+                InlineKeyboardButton(text=self.EMPTY_CELL, callback_data="2")
             ],
             [
-                InlineKeyboardButton(text=text, callback_data="3"),
-                InlineKeyboardButton(text=text, callback_data="4"),
-                InlineKeyboardButton(text=text, callback_data="5")
+                InlineKeyboardButton(text=self.EMPTY_CELL, callback_data="3"),
+                InlineKeyboardButton(text=self.EMPTY_CELL, callback_data="4"),
+                InlineKeyboardButton(text=self.EMPTY_CELL, callback_data="5")
             ],
             [
-                InlineKeyboardButton(text=text, callback_data="6"),
-                InlineKeyboardButton(text=text, callback_data="7"),
-                InlineKeyboardButton(text=text, callback_data="8")
+                InlineKeyboardButton(text=self.EMPTY_CELL, callback_data="6"),
+                InlineKeyboardButton(text=self.EMPTY_CELL, callback_data="7"),
+                InlineKeyboardButton(text=self.EMPTY_CELL, callback_data="8")
             ]
         ]
 
@@ -62,7 +54,7 @@ class Tris:
     def check_patta(self):
         for i in range(3):
             for j in range(3):
-                if self.cells[i][j].text == text:
+                if self.cells[i][j].text == self.EMPTY_CELL:
                     return False
         return True
 
@@ -75,7 +67,7 @@ class Tris:
         return False
 
     def is_cell_empty(self, row, col):
-        return self.cells[row][col].text == text
+        return self.cells[row][col].text == self.EMPTY_CELL
 
     def check_minor_diagonal(self):
         return (self.cells[0][2].text == self.cells[1][1].text == self.cells[2][0].text

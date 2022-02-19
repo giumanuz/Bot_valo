@@ -34,6 +34,10 @@ class Prenotazione:
 
     prenotazioni_in_corso = {}
 
+    @staticmethod
+    def callback_id():
+        return "prenotazione"
+
     def __init__(self):
         self.matricola = None
         self.nome = None
@@ -110,10 +114,6 @@ class Prenotazione:
             return "Via Tiburtina, 205", "- Aule (Via Tiburtina)"
         else:
             raise Exception("Cannot get here")
-
-    @staticmethod
-    def get_command_name():
-        return "Prenotazione"
 
     @classmethod
     def choose_edificio(cls, update: Update, _):
@@ -213,7 +213,7 @@ class Prenotazione:
 def init_prenotazioni(dispatcher: Dispatcher):
     dispatcher.add_handler(ConversationHandler(
         entry_points=[CallbackQueryHandler(Prenotazione.choose_edificio,
-                                           pattern=Prenotazione.get_command_name(),
+                                           pattern="prenotazione",
                                            run_async=True)],
         states={
             0: [CallbackQueryHandler(Prenotazione.choose_aula, pattern=r"\d")],
