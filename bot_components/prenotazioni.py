@@ -1,5 +1,6 @@
 import json
 import os
+from random import randint
 
 import qrcode
 from fpdf import FPDF
@@ -7,15 +8,16 @@ from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import CallbackContext, ConversationHandler, CommandHandler, Filters, MessageHandler, \
     CallbackQueryHandler, Dispatcher
 
+from .utils.os_utils import get_absolute_path
+
 
 def remove_file_from_top_directory(filename: str):
-    os.remove(os.path.join(os.path.dirname(__file__), "", "..", filename))
+    os.remove(get_absolute_path(f"/{filename}"))
 
 
 def load_prenotation_files():
-    path_to_prenotazioni_folder = os.path.join(os.path.dirname(__file__), "..", "resources", "prenotazioni")
-    dichiarazione_path = os.path.join(path_to_prenotazioni_folder, "dichiarazione.json")
-    settings_path = os.path.join(path_to_prenotazioni_folder, "settings_prenotazioni.json")
+    dichiarazione_path = get_absolute_path("/resources/prenotazioni/dichiarazione.json")
+    settings_path = get_absolute_path("/resources/prenotazioni/settings_prenotazioni.json")
     with open(dichiarazione_path, 'r', encoding='UTF-8') as f:
         testo_dichiarazione = json.load(f)
     with open(settings_path, 'r', encoding='UTF-8') as f:
@@ -32,12 +34,7 @@ class Prenotazione:
 
     prenotazioni_in_corso = {}
 
-    prenotazione_corrente = 0
-
-    def __init__(self, id_prenot=None):
-        if id_prenot != -1:
-            raise Exception("Per creare una nuova prenotazione,usa Prenotazione.new_prenotazione()"
-                            "invece di Prenotazione()")
+    def __init__(self):
         self.matricola = None
         self.nome = None
         self.giorno = None
@@ -46,19 +43,14 @@ class Prenotazione:
         self.dalle = None
         self.alle = None
         self.pdf = FPDF()
-
-    def generate_qr(self) -> str:
-        qr = qrcode.make(f"{self.matricola},{self.giorno},RM02{self.edificio}")
-        qr_image_file = f"qr-{self.prenotazione_corrente}.png"
-        qr.save(qr_image_file)
-        return qr_image_file
+        self.id = randint(0, 10000)
 
     def generate_pdf(self):
         self.initialize_pdf()
         self.insert_qr()
         for riga in self.texts:
             self.aggiungi_riga(riga)
-        self.pdf.output(f"{self.prenotazione_corrente}.pdf")
+        self.pdf.output(f"{self.id}.pdf")
 
     def initialize_pdf(self):
         self.pdf.add_page()
@@ -70,8 +62,14 @@ class Prenotazione:
         remove_file_from_top_directory(qr_image_file)
         self.pdf.cell(0, 65, ln=1)
 
+    def generate_qr(self) -> str:
+        qr = qrcode.make(f"{self.matricola},{self.giorno},RM02{self.edificio}")
+        qr_image_file = f"qr-{self.id}.png"
+        qr.save(qr_image_file)
+        return qr_image_file
+
     def aggiungi_riga(self, riga):
-        for i, elemento in enumerate(riga):
+        for elemento in riga:
             self.set_pdf_style(size=self.text_sizes[elemento["size"]],
                                color=self.text_colors[elemento["color"]])
             testo = elemento["text"]
@@ -80,6 +78,15 @@ class Prenotazione:
                 continue
             self.write_text_to_pdf(testo)
         self.pdf.ln()
+
+    def set_pdf_style(self, size, color: tuple[int, int, int]):
+        self.pdf.set_font_size(size)
+        self.pdf.set_text_color(color[0], color[1], color[2])
+
+    def insert_dichiarazione(self):
+        for pezzo in self.testo_dichiarazione:
+            self.pdf.multi_cell(0, 6, pezzo, 0)
+            self.pdf.cell(0, 4, "", ln=1)
 
     def write_text_to_pdf(self, testo):
         testo = self.format_text(testo)
@@ -96,15 +103,6 @@ class Prenotazione:
                           via=via, collocazione=collocazione,
                           inizio=self.dalle, fine=self.alle)
 
-    def insert_dichiarazione(self):
-        for pezzo in self.testo_dichiarazione:
-            self.pdf.multi_cell(0, 6, pezzo, 0)
-            self.pdf.cell(0, 4, "", ln=1)
-
-    def set_pdf_style(self, size, color: tuple[int, int, int]):
-        self.pdf.set_font_size(size)
-        self.pdf.set_text_color(color[0], color[1], color[2])
-
     def get_collocazione(self):
         if self.edificio == "1":
             return "Circonvallazione Tiburtina, 4", "Edificio Marco Polo (ex Poste S. Lorenzo)"
@@ -120,7 +118,7 @@ class Prenotazione:
     @classmethod
     def choose_edificio(cls, update: Update, _):
         chat_id = update.effective_chat.id
-        cls.prenotazioni_in_corso[chat_id] = cls.new_prenotazione()
+        cls.prenotazioni_in_corso[chat_id] = Prenotazione()
 
         update.callback_query.answer()
         command_list = InlineKeyboardMarkup(
@@ -141,16 +139,11 @@ class Prenotazione:
         return 0
 
     @classmethod
-    def new_prenotazione(cls):
-        cls.prenotazione_corrente += 1
-        return Prenotazione(-1)
-
-    @classmethod
     def choose_aula(cls, update: Update, context: CallbackContext):
         chat_id = update.effective_chat.id
         num_edificio = update.callback_query.data
         cls.prenotazioni_in_corso[chat_id].edificio = num_edificio
-        context.bot.send_message(chat_id=update.effective_chat.id, text="Inserisci l'Aula")
+        context.bot.send_message(chat_id=chat_id, text="Inserisci l'Aula")
         return 1
 
     @classmethod
@@ -158,7 +151,7 @@ class Prenotazione:
         chat_id = update.effective_chat.id
         aula = update.message.text
         cls.prenotazioni_in_corso[chat_id].aula = aula
-        context.bot.send_message(chat_id=update.effective_chat.id, text="Inserisci il giorno (dd/mm/aaaa)")
+        context.bot.send_message(chat_id=chat_id, text="Inserisci il giorno (dd/mm/aaaa)")
         return 2
 
     @classmethod
@@ -166,7 +159,7 @@ class Prenotazione:
         chat_id = update.effective_chat.id
         num_giorno = update.message.text
         cls.prenotazioni_in_corso[chat_id].giorno = num_giorno
-        context.bot.send_message(chat_id=update.effective_chat.id, text="Inserisci da che ora vuoi prenotare (hh)")
+        context.bot.send_message(chat_id=chat_id, text="Inserisci da che ora vuoi prenotare (hh)")
         return 3
 
     @classmethod
@@ -174,7 +167,7 @@ class Prenotazione:
         chat_id = update.effective_chat.id
         num_dalle = update.message.text
         cls.prenotazioni_in_corso[chat_id].dalle = num_dalle
-        context.bot.send_message(chat_id=update.effective_chat.id, text="Inserisci fino a che ora vuoi prenotare (hh)")
+        context.bot.send_message(chat_id=chat_id, text="Inserisci fino a che ora vuoi prenotare (hh)")
         return 4
 
     @classmethod
@@ -182,7 +175,7 @@ class Prenotazione:
         chat_id = update.effective_chat.id
         num_alle = update.message.text
         cls.prenotazioni_in_corso[chat_id].alle = num_alle
-        context.bot.send_message(chat_id=update.effective_chat.id, text="Inserisci la persona (Nome Cognome)")
+        context.bot.send_message(chat_id=chat_id, text="Inserisci la persona (Nome Cognome)")
         return 5
 
     @classmethod
@@ -190,18 +183,19 @@ class Prenotazione:
         chat_id = update.effective_chat.id
         nome = update.message.text
         cls.prenotazioni_in_corso[chat_id].nome = nome
-        context.bot.send_message(chat_id=update.effective_chat.id, text="Inserisci la matricola")
+        context.bot.send_message(chat_id=chat_id, text="Inserisci la matricola")
         return 6
 
     @classmethod
     def send_pdf(cls, update, context):
         chat_id = update.effective_chat.id
         matricola = update.message.text
-        cls.prenotazioni_in_corso[chat_id].matricola = matricola
-        cls.prenotazioni_in_corso[chat_id].generate_pdf()
+        prenotazione = cls.prenotazioni_in_corso[chat_id]
+        prenotazione.matricola = matricola
+        prenotazione.generate_pdf()
         cls.prenotazioni_in_corso.pop(chat_id)
 
-        pdf_file_name = f"{cls.prenotazione_corrente}.pdf"
+        pdf_file_name = f"{prenotazione.id}.pdf"
         with open(pdf_file_name, 'rb') as pdf_file:
             context.bot.sendDocument(chat_id=chat_id, document=pdf_file)
         remove_file_from_top_directory(pdf_file_name)
@@ -211,7 +205,7 @@ class Prenotazione:
     @classmethod
     def annulla_prenotazione(cls, update, context):
         chat_id = update.effective_chat.id
-        context.bot.send_message(chat_id=update.effective_chat.id, text="Prenotazione annullata")
+        context.bot.send_message(chat_id=chat_id, text="Prenotazione annullata")
         cls.prenotazioni_in_corso.pop(chat_id)
         return ConversationHandler.END
 

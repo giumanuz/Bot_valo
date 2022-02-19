@@ -1,9 +1,11 @@
 import logging
 import random
-from os import listdir, path
+from os import listdir
 
 from telegram import Update
 from telegram.ext import CallbackContext
+
+from .utils.os_utils import get_absolute_path
 
 _insieme_fica = {"vagina", "fica", "pisella", "fregna", "figa", "utero", "vulva", "gnegna", "picchia",
                  "barattolo della mostarda", "patata", "gnagna"}
@@ -39,10 +41,7 @@ class Foto:
 
     @classmethod
     def __get_random_photo(cls, category: str) -> bytes:
-        directory = path.join(
-            path.dirname(__file__),
-            "..", "resources", "photos", category
-        )
+        directory = get_absolute_path(f"/resources/photos/{category}")
         random_photo = f"{directory}/{random.choice(listdir(directory))}"
         try:
             with open(random_photo, "rb") as photo:

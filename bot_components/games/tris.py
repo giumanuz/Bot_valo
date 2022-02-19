@@ -1,26 +1,24 @@
 import json
-import os
+import logging
 
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Update
-from telegram.ext import CallbackQueryHandler, CallbackContext, Dispatcher, ConversationHandler, CommandHandler
+from telegram.ext import CallbackQueryHandler, CallbackContext, Dispatcher, ConversationHandler
+
+from bot_components.utils.os_utils import get_absolute_path
 
 text = '🟢'
 
-class Tris:
-    def __init__(self):
-        self.__cells = None
-        self.__current_player = None
-        self.__vittoria = False
-        self.__giocatore_uno = ""
-        self.__giocatore_due = ""
-        self.diz_persone = {}
-        try:
-            with open("./bot_components/commands/id_persone.json", "r") as file:
-                self.diz_persone = json.load(file)
-        except Exception as e:
-            print(e)
 
-    # region get
+class Tris:
+    diz_persone = {}
+
+    def __init__(self):
+        self.cells = None
+        self.current_player = None
+        self.vittoria = False
+        self.giocatore_uno = ""
+        self.giocatore_due = ""
+
     @staticmethod
     def get_command_name():
         return "Tris"
@@ -33,9 +31,8 @@ class Tris:
     def get_response_pattern() -> str:
         return r"\d"
 
-    # endregion
     def handle_command(self, update: Update, context: CallbackContext):
-        self.__cells = [
+        self.cells = [
             [
                 InlineKeyboardButton(text=text, callback_data="0"),
                 InlineKeyboardButton(text=text, callback_data="1"),
@@ -53,64 +50,61 @@ class Tris:
             ]
         ]
 
-        self.__current_player = 0
-        self.__giocatore_uno = ""
-        self.__giocatore_due = ""
+        self.current_player = 0
+        self.giocatore_uno = ""
+        self.giocatore_due = ""
         ris = context.bot.send_message(chat_id=update.effective_chat.id,
                                        text="Ecco il tris",
-                                       reply_markup=InlineKeyboardMarkup(self.__cells))
+                                       reply_markup=InlineKeyboardMarkup(self.cells))
 
         return 0, ris
 
-    # region Controlli
     def check_patta(self):
         for i in range(3):
             for j in range(3):
-                if self.__cells[i][j].text == text:
+                if self.cells[i][j].text == text:
                     return False
         return True
 
-    def __check_vittoria(self):
+    def check_vittoria(self):
         for i in range(3):
-            if self.__check_row(i) or self.__check_column(i):
+            if self.check_row(i) or self.check_column(i):
                 return True
-        if self.__check_main_diagonal() or self.__check_minor_diagonal():
+        if self.check_main_diagonal() or self.check_minor_diagonal():
             return True
         return False
 
-    def __is_cell_empty(self, row, col):
-        return self.__cells[row][col].text == text
+    def is_cell_empty(self, row, col):
+        return self.cells[row][col].text == text
 
-    def __check_minor_diagonal(self):
-        return (self.__cells[0][2].text == self.__cells[1][1].text == self.__cells[2][0].text
-                and not self.__is_cell_empty(2, 0))
+    def check_minor_diagonal(self):
+        return (self.cells[0][2].text == self.cells[1][1].text == self.cells[2][0].text
+                and not self.is_cell_empty(2, 0))
 
-    def __check_main_diagonal(self):
-        return (self.__cells[0][0].text == self.__cells[1][1].text == self.__cells[2][2].text
-                and not self.__is_cell_empty(2, 2))
+    def check_main_diagonal(self):
+        return (self.cells[0][0].text == self.cells[1][1].text == self.cells[2][2].text
+                and not self.is_cell_empty(2, 2))
 
-    def __check_column(self, i):
-        return (self.__cells[0][i].text == self.__cells[1][i].text == self.__cells[2][i].text
-                and not self.__is_cell_empty(2, i))
+    def check_column(self, i):
+        return (self.cells[0][i].text == self.cells[1][i].text == self.cells[2][i].text
+                and not self.is_cell_empty(2, i))
 
-    def __check_row(self, i):
-        return (self.__cells[i][0].text == self.__cells[i][1].text == self.__cells[i][2].text
-                and not self.__is_cell_empty(i, 0))
-
-    # endregion
+    def check_row(self, i):
+        return (self.cells[i][0].text == self.cells[i][1].text == self.cells[i][2].text
+                and not self.is_cell_empty(i, 0))
 
     def handle_response_two(self, update: Update, context: CallbackContext):
         update.callback_query.answer()
-        if self.__cells is None:
+        if self.cells is None:
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
                 text='Nessun tris iniziato, usare il comando "tris"'
             )
             return ConversationHandler.END
 
-        if self.__giocatore_due == "" and update.callback_query.from_user.id != self.__giocatore_uno:
-            self.__giocatore_due = update.callback_query.from_user.id
-        elif self.__giocatore_due != update.callback_query.from_user.id:
+        if self.giocatore_due == "" and update.callback_query.from_user.id != self.giocatore_uno:
+            self.giocatore_due = update.callback_query.from_user.id
+        elif self.giocatore_due != update.callback_query.from_user.id:
             return 1
 
         var = self.gioco_tris(update, context)
@@ -120,16 +114,16 @@ class Tris:
 
     def handle_response(self, update: Update, context: CallbackContext):
         update.callback_query.answer()
-        if self.__cells is None:
+        if self.cells is None:
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
                 text='Nessun tris iniziato, usare il comando "tris"'
             )
             return ConversationHandler.END
 
-        if self.__giocatore_uno == "":
-            self.__giocatore_uno = update.callback_query.from_user.id
-        elif self.__giocatore_uno != update.callback_query.from_user.id:
+        if self.giocatore_uno == "":
+            self.giocatore_uno = update.callback_query.from_user.id
+        elif self.giocatore_uno != update.callback_query.from_user.id:
             return 0
 
         var = self.gioco_tris(update, context)
@@ -144,30 +138,30 @@ class Tris:
             return 0
         riga = numero // 3
         colonna = numero % 3
-        if self.__current_player:
-            self.__cells[riga][colonna] = InlineKeyboardButton(
+        if self.current_player:
+            self.cells[riga][colonna] = InlineKeyboardButton(
                 text="⭕", callback_data="-1")
         else:
-            self.__cells[riga][colonna] = InlineKeyboardButton(
+            self.cells[riga][colonna] = InlineKeyboardButton(
                 text="❌", callback_data="-2")
-        self.__current_player = not self.__current_player
+        self.current_player = not self.current_player
         update.callback_query.edit_message_reply_markup(
-            reply_markup=InlineKeyboardMarkup(self.__cells))
-        if self.__check_vittoria():
-            if self.__current_player:
-                if str(self.__giocatore_uno) not in self.diz_persone:
+            reply_markup=InlineKeyboardMarkup(self.cells))
+        if self.check_vittoria():
+            if self.current_player:
+                if str(self.giocatore_uno) not in self.diz_persone:
                     nome_giocatore = update.callback_query.from_user.first_name
                 else:
-                    nome_giocatore = self.diz_persone[str(self.__giocatore_uno)]
+                    nome_giocatore = self.diz_persone[str(self.giocatore_uno)]
                 context.bot.send_message(
                     chat_id=update.effective_chat.id,
                     text=f'Ha vinto {nome_giocatore}'
                 )
             else:
-                if str(self.__giocatore_due) not in self.diz_persone:
+                if str(self.giocatore_due) not in self.diz_persone:
                     nome_giocatore = update.callback_query.from_user.first_name
                 else:
-                    nome_giocatore = self.diz_persone[str(self.__giocatore_due)]
+                    nome_giocatore = self.diz_persone[str(self.giocatore_due)]
                 context.bot.send_message(
                     chat_id=update.effective_chat.id,
                     text=f'Ha vinto {nome_giocatore}'
@@ -210,6 +204,14 @@ def handle_response_two(update: Update, context: CallbackContext):
     return ris
 
 
+def load_diz_persone():
+    try:
+        with open(get_absolute_path("/resources/text_files/id_persone.json"), "r") as file:
+            Tris.diz_persone = json.load(file)
+    except OSError as e:
+        logging.warning(f"Errore nell'apertura di 'id_persone.json': {e}")
+
+
 def init_tris(dispatcher: Dispatcher):
     dispatcher.add_handler(ConversationHandler(
         entry_points=[CallbackQueryHandler(
@@ -226,3 +228,4 @@ def init_tris(dispatcher: Dispatcher):
         per_user=False,
         per_message=False
     ))
+

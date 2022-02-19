@@ -1,9 +1,9 @@
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import CommandHandler, Dispatcher
 
+from bot_components.games.tris import Tris, init_tris
 from .games.snake import init_snake
 from .prenotazioni import init_prenotazioni, Prenotazione
-from .tris import Tris, init_tris
 
 
 class Menu:
