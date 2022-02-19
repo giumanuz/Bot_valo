@@ -12,7 +12,7 @@ def show_menu(update, context):
             [
                 InlineKeyboardButton(
                     text="Tris",
-                    callback_data=Tris.callback_id()
+                    callback_data="tris_callback"
                 ),
                 InlineKeyboardButton(
                     text="Snake",

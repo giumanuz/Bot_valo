@@ -13,44 +13,29 @@ class Tris:
     diz_persone = {}
 
     def __init__(self):
-        self.cells = None
-        self.current_player = None
+        self.cells = [
+            [
+                InlineKeyboardButton(text=self.EMPTY_CELL, callback_data="tris:0"),
+                InlineKeyboardButton(text=self.EMPTY_CELL, callback_data="tris:1"),
+                InlineKeyboardButton(text=self.EMPTY_CELL, callback_data="tris:2")
+            ],
+            [
+                InlineKeyboardButton(text=self.EMPTY_CELL, callback_data="tris:3"),
+                InlineKeyboardButton(text=self.EMPTY_CELL, callback_data="tris:4"),
+                InlineKeyboardButton(text=self.EMPTY_CELL, callback_data="tris:5")
+            ],
+            [
+                InlineKeyboardButton(text=self.EMPTY_CELL, callback_data="tris:6"),
+                InlineKeyboardButton(text=self.EMPTY_CELL, callback_data="tris:7"),
+                InlineKeyboardButton(text=self.EMPTY_CELL, callback_data="tris:8")
+            ]
+        ]
+        self.current_player = 0
         self.vittoria = False
         self.giocatore_uno = ""
         self.giocatore_due = ""
 
-    @staticmethod
-    def callback_id():
-        return "tris"
-
-    def handle_command(self, update: Update, context: CallbackContext):
-        self.cells = [
-            [
-                InlineKeyboardButton(text=self.EMPTY_CELL, callback_data="0"),
-                InlineKeyboardButton(text=self.EMPTY_CELL, callback_data="1"),
-                InlineKeyboardButton(text=self.EMPTY_CELL, callback_data="2")
-            ],
-            [
-                InlineKeyboardButton(text=self.EMPTY_CELL, callback_data="3"),
-                InlineKeyboardButton(text=self.EMPTY_CELL, callback_data="4"),
-                InlineKeyboardButton(text=self.EMPTY_CELL, callback_data="5")
-            ],
-            [
-                InlineKeyboardButton(text=self.EMPTY_CELL, callback_data="6"),
-                InlineKeyboardButton(text=self.EMPTY_CELL, callback_data="7"),
-                InlineKeyboardButton(text=self.EMPTY_CELL, callback_data="8")
-            ]
-        ]
-
-        self.current_player = 0
-        self.giocatore_uno = ""
-        self.giocatore_due = ""
-        ris = context.bot.send_message(chat_id=update.effective_chat.id,
-                                       text="Ecco il tris",
-                                       reply_markup=InlineKeyboardMarkup(self.cells))
-
-        return 0, ris
-
+    # region controlli
     def check_patta(self):
         for i in range(3):
             for j in range(3):
@@ -85,6 +70,8 @@ class Tris:
         return (self.cells[i][0].text == self.cells[i][1].text == self.cells[i][2].text
                 and not self.is_cell_empty(i, 0))
 
+    # endregion
+
     def handle_response_two(self, update: Update, context: CallbackContext):
         update.callback_query.answer()
         if self.cells is None:
@@ -92,17 +79,14 @@ class Tris:
                 chat_id=update.effective_chat.id,
                 text='Nessun tris iniziato, usare il comando "tris"'
             )
-            return ConversationHandler.END
+            return  # ConversationHandler.END
 
         if self.giocatore_due == "" and update.callback_query.from_user.id != self.giocatore_uno:
             self.giocatore_due = update.callback_query.from_user.id
         elif self.giocatore_due != update.callback_query.from_user.id:
-            return 1
+            return
 
-        var = self.gioco_tris(update, context)
-        if var != ConversationHandler.END:
-            return not var
-        return var
+        self.gioco_tris(update, context)
 
     def handle_response(self, update: Update, context: CallbackContext):
         update.callback_query.answer()
@@ -111,31 +95,25 @@ class Tris:
                 chat_id=update.effective_chat.id,
                 text='Nessun tris iniziato, usare il comando "tris"'
             )
-            return ConversationHandler.END
+            return  # ConversationHandler.END
 
         if self.giocatore_uno == "":
             self.giocatore_uno = update.callback_query.from_user.id
         elif self.giocatore_uno != update.callback_query.from_user.id:
-            return 0
-
-        var = self.gioco_tris(update, context)
-        if var != ConversationHandler.END:
-            return var
-        return var
+            return
+        self.gioco_tris(update, context)
 
     def gioco_tris(self, update: Update, context: CallbackContext):
+        if update.callback_query.data is None:
+            return
         update.callback_query.answer()
-        numero = int(update.callback_query.data)
-        if numero == -1 or numero == -2:
-            return 0
+        numero = int(update.callback_query.data[5:])
         riga = numero // 3
         colonna = numero % 3
         if self.current_player:
-            self.cells[riga][colonna] = InlineKeyboardButton(
-                text="⭕", callback_data="-1")
+            self.cells[riga][colonna] = InlineKeyboardButton(text="⭕")
         else:
-            self.cells[riga][colonna] = InlineKeyboardButton(
-                text="❌", callback_data="-2")
+            self.cells[riga][colonna] = InlineKeyboardButton(text="❌")
         self.current_player = not self.current_player
         update.callback_query.edit_message_reply_markup(
             reply_markup=InlineKeyboardMarkup(self.cells))
@@ -171,7 +149,7 @@ class Tris:
 dict_tris = {}
 
 
-def handle_command(update: Update, context: CallbackContext):
+def show_tris(update: Update, context: CallbackContext):
     tris = Tris()
     (ris, message) = tris.handle_command(update, context)
     dict_tris[message.message_id] = tris
@@ -196,6 +174,13 @@ def handle_response_two(update: Update, context: CallbackContext):
     return ris
 
 
+def tris_callback(update: Update, context: CallbackContext):
+    update.callback_query.answer()
+    tris = dict_tris[update.effective_message.message_id]
+    tris.handle_response(update, context)
+    tris.handle_response_two(update, context)
+
+
 def load_diz_persone():
     try:
         with open(get_absolute_path("/resources/text_files/id_persone.json"), "r") as file:
@@ -205,18 +190,8 @@ def load_diz_persone():
 
 
 def init_tris(dispatcher: Dispatcher):
-    dispatcher.add_handler(ConversationHandler(
-        entry_points=[CallbackQueryHandler(
-            handle_command, pattern="tris", run_async=True)],
-        states={
-            0: [CallbackQueryHandler(
-                handle_response, pattern=r"\d")],
-            1: [CallbackQueryHandler(
-                handle_response_two, pattern=r"\d")]
-        },
-        fallbacks=[],
-        conversation_timeout=20,
-        per_chat=True,
-        per_user=False,
-        per_message=False
+    dispatcher.add_handler(CallbackQueryHandler(
+        show_tris, pattern="tris_callback", run_async=True))
+    dispatcher.add_handler(CallbackQueryHandler(
+        tris_callback, pattern=r"tris:-?\d", run_async=True
     ))
