@@ -4,6 +4,7 @@ from telegram.ext import CommandHandler, Dispatcher
 from bot_components.games.tris import Tris, init_tris
 from .games.snake import init_snake
 from .prenotazioni import init_prenotazioni, Prenotazione
+from .prenotazioni_vere import init_prenotazioni_vere
 
 
 def show_menu(update, context):
@@ -25,6 +26,12 @@ def show_menu(update, context):
                     text="Prenotazione",
                     callback_data=Prenotazione.callback_id()
                 )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="Prenotazione vera",
+                    callback_data="prenotazione_vera"
+                )
             ]
         ]
     )
@@ -39,3 +46,4 @@ def init_menu(dispatcher: Dispatcher):
     init_prenotazioni(dispatcher)
     init_tris(dispatcher)
     init_snake(dispatcher)
+    init_prenotazioni_vere(dispatcher)
