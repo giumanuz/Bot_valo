@@ -36,7 +36,7 @@ class Prenotazione:
 
     @staticmethod
     def callback_id():
-        return "prenotazione"
+        return "prenotazione_falsa"
 
     def __init__(self):
         self.matricola = None
@@ -213,7 +213,7 @@ class Prenotazione:
 def init_prenotazioni(dispatcher: Dispatcher):
     dispatcher.add_handler(ConversationHandler(
         entry_points=[CallbackQueryHandler(Prenotazione.choose_edificio,
-                                           pattern="^prenotazione$",
+                                           pattern="^prenotazione_falsa$",
                                            run_async=True)],
         states={
             0: [CallbackQueryHandler(Prenotazione.choose_aula, pattern=r"\d")],

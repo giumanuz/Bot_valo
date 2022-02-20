@@ -11,7 +11,7 @@ from selenium.webdriver.support.select import Select
 def prenota(update: Update, context: CallbackContext):
     options = Options()
     options.headless = True
-    driver = webdriver.Firefox(options=options)
+    driver = webdriver.PhantomJS(options=options)
 
     time.sleep(2)
     driver.get("https://prodigit.uniroma1.it")
