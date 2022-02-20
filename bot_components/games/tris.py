@@ -41,7 +41,6 @@ class Tris:
 
     def __init__(self):
         self.giocatore_corrente = None
-        self.partita_attiva = True
         self.giocatore_uno: int = -1
         self.giocatore_due: int = -1
         self.message_id: int = -1
@@ -103,6 +102,9 @@ class Tris:
         else:
             raise Exception("Turno non valido")
 
+    def scegli_vincitore(self) -> str:
+        return str(self.giocatore_uno if self.giocatore_corrente == self.giocatore_due else self.giocatore_due)
+
     def make_move(self, update: Update) -> bool:
         simbolo = self.scegli_simbolo()
         self.cambia_giocatore()
@@ -122,10 +124,6 @@ class Tris:
         else:
             raise Exception("Turno non valido")
 
-    def end_game(self):
-        self.partita_attiva = False
-        Tris.active_tris_games.pop(self.message_id)
-
     @classmethod
     def show_tris(cls, update: Update, context: CallbackContext):
         tris = Tris()
@@ -141,7 +139,7 @@ class Tris:
 
         message_id = update.effective_message.message_id
         tris: Tris = cls.active_tris_games.get(message_id, None)
-        if tris is None or not tris.partita_attiva:
+        if tris is None:
             return
 
         user_id = update.effective_user.id
@@ -155,10 +153,10 @@ class Tris:
             if is_cambiato:
                 update.effective_message.edit_reply_markup(InlineKeyboardMarkup(tris.cells))
             if tris.check_vittoria():
-                id_giocatore = str(tris.giocatore_uno if tris.giocatore_corrente == tris.giocatore_due else tris.giocatore_due)
+                id_giocatore = tris.scegli_vincitore()
                 nome_giocatore = Tris.diz_persone.get(id_giocatore, update.effective_user.first_name)
                 context.bot.send_message(update.effective_chat.id, f"Ha vinto {nome_giocatore}")
-                tris.end_game()
+                Tris.active_tris_games.pop(tris.message_id)
             elif tris.check_patta():
                 context.bot.send_message(update.effective_chat.id, "Pareggio!")
-                tris.end_game()
+                Tris.active_tris_games.pop(tris.message_id)
