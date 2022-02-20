@@ -20,7 +20,6 @@ def load_diz_persone():
     try:
         with open(get_absolute_path("/resources/text_files/id_persone.json"), "r") as file:
             Tris.diz_persone = json.load(file)
-            print(Tris.diz_persone)
     except OSError as e:
         logging.warning(f"Errore nell'apertura di 'id_persone.json': {e}")
 
@@ -95,12 +94,20 @@ class Tris:
     def is_cell_empty(self, row, col):
         return self.cells[row][col].text == self.EMPTY_CELL
 
-    def make_move(self, update: Update):
-        simbolo = self.X_CELL if self.giocatore_corrente == self.giocatore_uno else self.O_CELL
+    def scegli_simbolo(self) -> str:
+        if self.giocatore_corrente == self.giocatore_uno:
+            return self.X_CELL
+        else:
+            return self.O_CELL
+
+    def make_move(self, update: Update) -> bool:
+        simbolo = self.scegli_simbolo()
         self.cambia_giocatore()
         riga, colonna = get_coordinate(update)
         if self.cells[riga][colonna].text == self.EMPTY_CELL:
             self.cells[riga][colonna].text = simbolo
+            return True
+        return False
 
     def cambia_giocatore(self):
         if self.giocatore_corrente == self.giocatore_uno:
@@ -137,8 +144,9 @@ class Tris:
             tris.giocatore_due = tris.giocatore_corrente = user_id
 
         if tris.giocatore_corrente == user_id:
-            tris.make_move(update)
-            update.effective_message.edit_reply_markup(InlineKeyboardMarkup(tris.cells))
+            is_cambiato = tris.make_move(update)
+            if is_cambiato:
+                update.effective_message.edit_reply_markup(InlineKeyboardMarkup(tris.cells))
             if tris.check_vittoria():
                 id_giocatore = str(tris.giocatore_uno if tris.giocatore_corrente == tris.giocatore_due else tris.giocatore_due)
                 nome_giocatore = Tris.diz_persone.get(id_giocatore, update.effective_user.first_name)
