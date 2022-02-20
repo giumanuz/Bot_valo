@@ -45,6 +45,7 @@ class Tris:
         self.giocatore_uno: int = -1
         self.giocatore_due: int = -1
         self.message_id: int = -1
+        self.turno: int = 1
         self.cells = [
             [
                 InlineKeyboardButton(text=self.EMPTY_CELL, callback_data="tris:0"),
@@ -95,10 +96,12 @@ class Tris:
         return self.cells[row][col].text == self.EMPTY_CELL
 
     def scegli_simbolo(self) -> str:
-        if self.giocatore_corrente == self.giocatore_uno:
-            return self.X_CELL
+        if self.turno == 1:
+            return Tris.X_CELL
+        elif self.turno == 2:
+            return Tris.O_CELL
         else:
-            return self.O_CELL
+            raise Exception("Turno non valido")
 
     def make_move(self, update: Update) -> bool:
         simbolo = self.scegli_simbolo()
@@ -110,10 +113,14 @@ class Tris:
         return False
 
     def cambia_giocatore(self):
-        if self.giocatore_corrente == self.giocatore_uno:
+        if self.turno == 1:
             self.giocatore_corrente = self.giocatore_due
-        else:
+            self.turno = 2
+        elif self.turno == 2:
             self.giocatore_corrente = self.giocatore_uno
+            self.turno = 1
+        else:
+            raise Exception("Turno non valido")
 
     def end_game(self):
         self.partita_attiva = False
