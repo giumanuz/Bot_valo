@@ -10,7 +10,7 @@ from bot_components.utils.os_utils import get_absolute_path
 def init_tris(dispatcher: Dispatcher):
     load_diz_persone()
     dispatcher.add_handler(CallbackQueryHandler(
-        Tris.show_tris, pattern="tris-callback", run_async=True))
+        Tris.show_tris, pattern="^tris-callback$", run_async=True))
     dispatcher.add_handler(CallbackQueryHandler(
         Tris.tris_callback, pattern=r"tris:[0-9]", run_async=True
     ))
@@ -20,6 +20,7 @@ def load_diz_persone():
     try:
         with open(get_absolute_path("/resources/text_files/id_persone.json"), "r") as file:
             Tris.diz_persone = json.load(file)
+            print(Tris.diz_persone)
     except OSError as e:
         logging.warning(f"Errore nell'apertura di 'id_persone.json': {e}")
 
@@ -125,7 +126,7 @@ class Tris:
         update.callback_query.answer()
 
         message_id = update.effective_message.message_id
-        tris = cls.active_tris_games.get(message_id, None)
+        tris: Tris = cls.active_tris_games.get(message_id, None)
         if tris is None or not tris.partita_attiva:
             return
 
@@ -139,7 +140,9 @@ class Tris:
             tris.make_move(update)
             update.effective_message.edit_reply_markup(InlineKeyboardMarkup(tris.cells))
             if tris.check_vittoria():
-                context.bot.send_message(update.effective_chat.id, "Hai vinto!")
+                id_giocatore = str(tris.giocatore_uno if tris.giocatore_corrente == tris.giocatore_due else tris.giocatore_due)
+                nome_giocatore = Tris.diz_persone.get(id_giocatore, update.effective_user.first_name)
+                context.bot.send_message(update.effective_chat.id, f"Ha vinto {nome_giocatore}")
                 tris.end_game()
             elif tris.check_patta():
                 context.bot.send_message(update.effective_chat.id, "Pareggio!")
