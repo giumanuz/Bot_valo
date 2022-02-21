@@ -94,7 +94,7 @@ class Tris:
     def is_cell_empty(self, row, col):
         return self.cells[row][col].text == self.EMPTY_CELL
 
-    def scegli_simbolo(self) -> str:
+    def imposta_simbolo(self) -> str:
         if self.turno == 1:
             return Tris.X_CELL
         elif self.turno == 2:
@@ -102,17 +102,19 @@ class Tris:
         else:
             raise Exception("Turno non valido")
 
-    def scegli_vincitore(self) -> str:
-        return str(self.giocatore_uno if self.giocatore_corrente == self.giocatore_due else self.giocatore_due)
+    def get_nome_vincitore(self, update: Update) -> str:
+        if self.giocatore_corrente == self.giocatore_uno:
+            id_vincitore = self.giocatore_uno
+        else:
+            id_vincitore = self.giocatore_due
+        return self.diz_persone.get(id_vincitore, update.effective_user.first_name)
 
-    def make_move(self, update: Update) -> bool:
-        simbolo = self.scegli_simbolo()
+    def make_move(self, update: Update):
+        simbolo = self.imposta_simbolo()
         self.cambia_giocatore()
         riga, colonna = get_coordinate(update)
-        if self.cells[riga][colonna].text == self.EMPTY_CELL:
-            self.cells[riga][colonna].text = simbolo
-            return True
-        return False
+        self.cells[riga][colonna].text = simbolo
+        update.effective_message.edit_reply_markup(InlineKeyboardMarkup(self.cells))
 
     def cambia_giocatore(self):
         if self.turno == 1:
@@ -139,7 +141,7 @@ class Tris:
 
         message_id = update.effective_message.message_id
         tris: Tris = cls.active_tris_games.get(message_id, None)
-        if tris is None:
+        if tris is None or not tris.is_cell_empty(*get_coordinate(update)):
             return
 
         user_id = update.effective_user.id
@@ -149,13 +151,10 @@ class Tris:
             tris.giocatore_due = tris.giocatore_corrente = user_id
 
         if tris.giocatore_corrente == user_id:
-            is_cambiato = tris.make_move(update)
-            if is_cambiato:
-                update.effective_message.edit_reply_markup(InlineKeyboardMarkup(tris.cells))
+            tris.make_move(update)
             if tris.check_vittoria():
-                id_giocatore = tris.scegli_vincitore()
-                nome_giocatore = Tris.diz_persone.get(id_giocatore, update.effective_user.first_name)
-                context.bot.send_message(update.effective_chat.id, f"Ha vinto {nome_giocatore}")
+                vincitore = tris.get_nome_vincitore(update)
+                context.bot.send_message(update.effective_chat.id, f"Ha vinto {vincitore}")
                 Tris.active_tris_games.pop(tris.message_id)
             elif tris.check_patta():
                 context.bot.send_message(update.effective_chat.id, "Pareggio!")
