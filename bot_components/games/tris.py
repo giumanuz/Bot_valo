@@ -60,9 +60,12 @@ class Tris:
             vincitore = tris.get_nome_vincitore(update)
             context.bot.send_message(chat_id, f"Ha vinto {vincitore}")
             Tris.active_tris_games.pop(tris.message_id)
+            return
         elif tris.check_patta():
             context.bot.send_message(chat_id, "Pareggio!")
             Tris.active_tris_games.pop(tris.message_id)
+            return
+        tris.cambia_giocatore()
 
     @classmethod
     def show_tris(cls, update: Update, context: CallbackContext):
@@ -116,7 +119,6 @@ class Tris:
         riga, colonna = get_coordinate(update)
         self.cells[riga][colonna].text = self.get_current_cell_type()
         update.effective_message.edit_reply_markup(InlineKeyboardMarkup(self.cells))
-        self.cambia_giocatore()
 
     def get_current_cell_type(self) -> str:
         return Tris.X_CELL if self.turno == 1 else Tris.O_CELL
@@ -154,4 +156,4 @@ class Tris:
             id_vincitore = self.giocatore_uno
         else:
             id_vincitore = self.giocatore_due
-        return self.diz_persone.get(id_vincitore, update.effective_user.first_name)
+        return self.diz_persone.get(str(id_vincitore), update.effective_user.first_name)
