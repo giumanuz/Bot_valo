@@ -22,8 +22,7 @@ class Risposte:
             
         if "c++" in testo:
             context.bot.send_message(chat_id=chat_id,
-                                     text='Object Oriented C' if random.choice(
-                                         [True, False]) else 'TipoNodoSCL ma con le classi')
+                                     text=random.choice(('Lu meju', 'TipoNodoSCL ma con le classi')))
 
     @staticmethod
     def software(chat_id: int, testo: str, context: CallbackContext):
