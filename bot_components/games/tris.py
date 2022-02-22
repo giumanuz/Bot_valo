@@ -24,7 +24,7 @@ def load_diz_persone():
         logging.warning(f"Errore nell'apertura di 'id_persone.json': {e}")
 
 
-def get_coordinate(update):
+def get_coordinate(update: Update):
     numero = int(update.callback_query.data[5:])
     riga = numero // 3
     colonna = numero % 3
@@ -74,10 +74,9 @@ class Tris:
         cls.active_tris_games[message.message_id] = tris
 
     def __init__(self):
-        self.giocatore_corrente = None
-        self.giocatore_uno = -1
-        self.giocatore_due = -1
-        self.message_id = -1
+        self.giocatore_uno = None
+        self.giocatore_due = None
+        self.message_id = None
         self.turno = 1
         self.cells = [
             [
@@ -97,65 +96,53 @@ class Tris:
             ]
         ]
 
+    @property
+    def giocatore_corrente(self):
+        return self.giocatore_uno if self.turno == 1 else self.giocatore_due
+
     def is_cell_empty(self, row, col):
         return self.cells[row][col].text == self.EMPTY_CELL
 
     def user_init_required(self):
-        return self.giocatore_uno == -1 or self.giocatore_due == -1
+        return self.giocatore_uno is None or self.giocatore_due is None
 
     def initialize_user(self, user_id):
-        if self.giocatore_uno == -1:
-            self.giocatore_uno = self.giocatore_corrente = user_id
-        elif self.giocatore_due == -1:
-            self.giocatore_due = self.giocatore_corrente = user_id
+        if self.giocatore_uno is None:
+            self.giocatore_uno = user_id
+        elif self.giocatore_due is None:
+            self.giocatore_due = user_id
 
     def make_move_and_edit_message(self, update: Update):
-        simbolo = self.imposta_simbolo()
         self.cambia_giocatore()
         riga, colonna = get_coordinate(update)
-        self.cells[riga][colonna].text = simbolo
+        self.cells[riga][colonna].text = self.get_current_cell_type()
         update.effective_message.edit_reply_markup(InlineKeyboardMarkup(self.cells))
 
-    def imposta_simbolo(self) -> str:
-        if self.turno == 1:
-            return Tris.X_CELL
-        elif self.turno == 2:
-            return Tris.O_CELL
-        else:
-            raise Exception("Turno non valido")
+    def get_current_cell_type(self) -> str:
+        return Tris.X_CELL if self.turno == 1 else Tris.O_CELL
 
     def cambia_giocatore(self):
-        if self.turno == 1:
-            self.giocatore_corrente = self.giocatore_due
-            self.turno = 2
-        elif self.turno == 2:
-            self.giocatore_corrente = self.giocatore_uno
-            self.turno = 1
-        else:
-            raise Exception("Turno non valido")
+        self.turno = 2 if self.turno == 1 else 1
 
-    def check_patta(self):
-        for i in range(3):
-            for j in range(3):
-                if self.cells[i][j].text == self.EMPTY_CELL:
-                    return False
-        return True
+    def check_patta(self) -> bool:
+        return all(self.cells[i][j].text != self.EMPTY_CELL
+                   for i in range(3) for j in range(3))
 
-    def check_vittoria(self):
+    def check_vittoria(self) -> bool:
         for i in range(3):
             if self.check_row(i) or self.check_column(i):
                 return True
         return self.check_diagonals()
 
-    def check_row(self, i):
+    def check_row(self, i) -> bool:
         return (self.cells[i][0].text == self.cells[i][1].text == self.cells[i][2].text
                 and not self.is_cell_empty(i, 0))
 
-    def check_column(self, i):
+    def check_column(self, i) -> bool:
         return (self.cells[0][i].text == self.cells[1][i].text == self.cells[2][i].text
                 and not self.is_cell_empty(2, i))
 
-    def check_diagonals(self):
+    def check_diagonals(self) -> bool:
         tris_on_main_diagonal = (self.cells[0][0].text == self.cells[1][1].text == self.cells[2][2].text
                                  and not self.is_cell_empty(2, 2))
         tris_on_minor_diagonal = (self.cells[0][2].text == self.cells[1][1].text == self.cells[2][0].text
