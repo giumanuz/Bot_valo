@@ -113,10 +113,10 @@ class Tris:
             self.giocatore_due = user_id
 
     def make_move_and_edit_message(self, update: Update):
-        self.cambia_giocatore()
         riga, colonna = get_coordinate(update)
         self.cells[riga][colonna].text = self.get_current_cell_type()
         update.effective_message.edit_reply_markup(InlineKeyboardMarkup(self.cells))
+        self.cambia_giocatore()
 
     def get_current_cell_type(self) -> str:
         return Tris.X_CELL if self.turno == 1 else Tris.O_CELL
