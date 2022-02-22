@@ -9,11 +9,8 @@ from bot_components.utils.os_utils import get_absolute_path
 
 def init_tris(dispatcher: Dispatcher):
     load_diz_persone()
-    dispatcher.add_handler(CallbackQueryHandler(
-        Tris.show_tris, pattern="^tris-callback$", run_async=True))
-    dispatcher.add_handler(CallbackQueryHandler(
-        Tris.tris_callback, pattern=r"tris:[0-9]", run_async=True
-    ))
+    dispatcher.add_handler(CallbackQueryHandler(Tris.show_tris, pattern=r"tris-callback", run_async=True))
+    dispatcher.add_handler(CallbackQueryHandler(Tris.tris_callback, pattern=r"tris:[0-9]", run_async=True))
 
 
 def load_diz_persone():
