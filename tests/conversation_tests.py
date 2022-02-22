@@ -4,8 +4,10 @@ from bot_components.foto import Foto
 from bot_components.insulti import Insulti
 from bot_components.menu import show_menu
 from bot_components.risposte import Risposte
-from tests.framework.mock_update_factory import MockUpdateFactory
-from tests.framework.mocks import *
+from tests.framework.mockbot import MockBot
+from tests.framework.mockcontext import MockContext
+from tests.framework.mockdispatcher import MockDispatcher
+from tests.framework.mockupdate import MockUpdate
 
 bot = MockBot()
 dispatcher = MockDispatcher(bot)
@@ -54,7 +56,7 @@ def test_Risposte_ifTextContainsNonExplicitTrigger_ShouldNotSendPhoto(setup):
 
 def test_onMenuCommand_ShouldSendMenu(setup):
     from telegram.inline.inlinekeyboardmarkup import InlineKeyboardMarkup
-    update = MockUpdateFactory.empty()
+    update = MockUpdate.empty()
     show_menu(update, context)
     res = bot.result
     assert len(res) == 1
@@ -78,7 +80,7 @@ def test_Risposte_ifTextContainsExplicitTrigger_ShouldReply(setup):
 
 
 def _send_fake_message_to(cls, text):
-    update = MockUpdateFactory.with_message(text)
+    update = MockUpdate.from_message(text)
     cls.handle_message(update, context)
     return bot.result
 
