@@ -10,7 +10,7 @@ from tests.test_utilities.tris_tests_utils import *
 bot = MockBot()
 dispatcher = MockDispatcher(bot)
 context = MockContext(dispatcher)
-tris: Tris
+tris: Tris = None
 
 XX = Tris.X_CELL
 OO = Tris.O_CELL
