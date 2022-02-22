@@ -19,6 +19,11 @@ class Risposte:
         if "c#" in testo:
             context.bot.send_message(
                 chat_id=chat_id, text='COOL C-Like Object Oriented Language')
+            
+        if "c++" in testo:
+            context.bot.send_message(chat_id=chat_id,
+                                     text='Object Oriented C' if random.choice(
+                                         [True, False]) else 'TipoNodoSCL ma con le classi')
 
     @staticmethod
     def software(chat_id: int, testo: str, context: CallbackContext):
@@ -37,11 +42,6 @@ class Risposte:
         if "intellij" in testo:
             context.bot.send_message(chat_id=chat_id,
                                      text='i pro usano Eclipse')
-
-        if "c++" in testo:
-            context.bot.send_message(chat_id=chat_id,
-                                     text='Object Oriented C' if random.choice(
-                                         [True, False]) else 'TipoNodoSCL ma con le classi')
 
     @staticmethod
     def universita(chat_id: int, testo: str, context: CallbackContext):
