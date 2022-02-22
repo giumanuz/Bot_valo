@@ -21,23 +21,33 @@ GIOCATORE_DUE = 222
 
 @pytest.fixture
 def simple_setup():
-    bot.reset_data()
     global tris
+    bot.reset_data()
     tris = Tris()
     Tris.active_tris_games = {}
 
 
 @pytest.fixture
-def setup_first_turn_with_x_in_upperleft_corner():
-    bot.reset_data()
+def setup_after_first_turn():
     global tris
+    bot.reset_data()
     tris = Tris()
     Tris.active_tris_games = {123: tris}
-    tris.cells = make_cells(XX, NN, NN,
-                            NN, NN, NN,
-                            NN, NN, NN)
+    tris.message_id = 123
     tris.giocatore_uno = GIOCATORE_UNO
     tris.turno = 2
+
+
+@pytest.fixture
+def setup_after_second_turn():
+    global tris
+    bot.reset_data()
+    tris = Tris()
+    Tris.active_tris_games = {123: tris}
+    tris.message_id = 123
+    tris.giocatore_uno = GIOCATORE_UNO
+    tris.giocatore_due = GIOCATORE_DUE
+    tris.turno = 1
 
 
 def test_isTrisShown(simple_setup):
@@ -49,7 +59,7 @@ def test_isTrisShown(simple_setup):
     assert is_empty_tris(res[0]['reply_markup'])
 
 
-def test_ifFirstUserPresses_putsAnX(simple_setup):
+def test_ifFirstPlayerPresses_putsAnX(simple_setup):
     Tris.active_tris_games = {123: tris}
     update = MockUpdate.create_from(message_id=123, callback_data="tris:0")
     Tris.tris_callback(update, context)
@@ -59,14 +69,17 @@ def test_ifFirstUserPresses_putsAnX(simple_setup):
     assert are_cells_equal(expected_cells, tris.cells)
 
 
-def test_ifUserPresses_editsMessageMarkup(simple_setup):
+def test_ifPlayerPresses_editsMessageMarkup(simple_setup):
     Tris.active_tris_games = {123: tris}
     update = MockUpdate.create_from(message_id=123, callback_data="tris:0")
     Tris.tris_callback(update, context)
     assert update.effective_message.reply_markup.inline_keyboard[0][0].text == XX
 
 
-def test_ifSameUserPressesOtherCell_putsAnO(setup_first_turn_with_x_in_upperleft_corner):
+def test_ifSamePlayerPressesOtherCell_putsAnO(setup_after_first_turn):
+    tris.cells = make_cells(XX, NN, NN,
+                            NN, NN, NN,
+                            NN, NN, NN)
     update = MockUpdate.create_from(callback_data="tris:3", user_id=GIOCATORE_UNO, message_id=123)
     Tris.tris_callback(update, context)
     expected_cells = make_cells(XX, NN, NN,
@@ -75,13 +88,58 @@ def test_ifSameUserPressesOtherCell_putsAnO(setup_first_turn_with_x_in_upperleft
     assert are_cells_equal(expected_cells, tris.cells)
 
 
-def test_ifOtherUserPressesOtherCell_putsAnO(setup_first_turn_with_x_in_upperleft_corner):
+def test_ifOtherPlayerPressesOtherCell_putsAnO(setup_after_first_turn):
+    tris.cells = make_cells(XX, NN, NN,
+                            NN, NN, NN,
+                            NN, NN, NN)
     update = MockUpdate.create_from(callback_data="tris:3", user_id=GIOCATORE_DUE, message_id=123)
     Tris.tris_callback(update, context)
     expected_cells = make_cells(XX, NN, NN,
                                 OO, NN, NN,
                                 NN, NN, NN)
     assert are_cells_equal(expected_cells, tris.cells)
+
+
+def test_ifPlayerTwoPressesInTurnThree_shouldIgnore(setup_after_second_turn):
+    tris.cells = expected_cells = make_cells(XX, NN, NN,
+                                             OO, NN, NN,
+                                             NN, NN, NN)
+    update = MockUpdate.create_from(callback_data="tris:5", user_id=GIOCATORE_DUE, message_id=123)
+    Tris.tris_callback(update, context)
+    assert are_cells_equal(expected_cells, tris.cells)
+
+
+def test_ifNonPlayerUserPresses_shouldIgnore(setup_after_second_turn):
+    tris.cells = expected_cells = make_cells(XX, NN, NN,
+                                             OO, NN, NN,
+                                             NN, NN, NN)
+    update = MockUpdate.create_from(callback_data="tris:5", user_id=789, message_id=123)
+    Tris.tris_callback(update, context)
+    assert are_cells_equal(expected_cells, tris.cells)
+
+
+def test_shouldRecognizeWin(simple_setup):
+    tris.cells = make_cells(XX, XX, XX,
+                            OO, OO, NN,
+                            NN, NN, NN)
+    assert tris.check_vittoria()
+
+
+def test_shouldRecognizeDraw(simple_setup):
+    tris.cells = make_cells(XX, XX, OO,
+                            OO, OO, XX,
+                            XX, OO, OO)
+    assert tris.check_patta()
+
+
+def test_whenPlayerWins_shouldEndGame(setup_after_second_turn):
+    tris.turno = 1
+    tris.cells = make_cells(XX, XX, NN,
+                            OO, OO, NN,
+                            NN, NN, NN)
+    update = MockUpdate.create_from(callback_data="tris:2", user_id=GIOCATORE_UNO, message_id=123)
+    Tris.tris_callback(update, context)
+    assert 123 not in Tris.active_tris_games
 
 
 def is_empty_tris(markup: InlineKeyboardMarkup) -> bool:
