@@ -19,7 +19,7 @@ class Risposte:
         if "c#" in testo:
             context.bot.send_message(
                 chat_id=chat_id, text='COOL C-Like Object Oriented Language')
-            
+
         if "c++" in testo:
             context.bot.send_message(chat_id=chat_id,
                                      text=random.choice(('Lu meju', 'TipoNodoSCL ma con le classi')))
@@ -57,7 +57,7 @@ class Risposte:
             context.bot.send_message(
                 chat_id=chat_id, text='tanto è 30L')
 
-        if "ricorsione" in testo:
+        if "ricorsione" in testo or "ricorsiv" in testo:
             context.bot.send_message(
                 chat_id=chat_id, text='La ricorsione è per naBBoltenati')
 
@@ -70,11 +70,11 @@ class Risposte:
         if "grazie" in testo:
             context.bot.send_message(chat_id=chat_id, text='Ar cazzo')
 
-        if "cosa?" in testo:
+        if "cosa?" in testo or "che?" in testo:
             context.bot.send_message(chat_id=chat_id, text='Stocazzoooo!')
 
         if "ə" in testo:
-            context.bot.send_message(chat_id=chat_id, text='Ricchionǝ')
+            context.bot.send_message(chat_id=chat_id, text='Ricchionə')
 
         if "ma è un uomo" in testo:
             context.bot.send_message(
@@ -94,8 +94,3 @@ class Risposte:
             if "dettu de derni" in testo:
                 context.bot.send_message(chat_id=chat_id,
                                          text='Quannu Cesi ha lu cappello, turna \'ndietro e pija l\'umbrello')
-
-        # test
-        if chat_id == -1 and "test" in testo:
-            context.bot.send_message(chat_id=-1,
-                                     text='test')

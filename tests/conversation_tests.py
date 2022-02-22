@@ -65,7 +65,7 @@ def test_onMenuCommand_ShouldSendMenu(setup):
 
 
 def test_Risposte_ifTriggerWordSent_ShouldReply(setup):
-    res = _send_fake_message_to(Risposte, "test")
+    res = _send_fake_message_to(Risposte, "grazie")
     assert len(res) == 1
 
 
@@ -75,7 +75,7 @@ def test_Risposte_ifNonTriggerWordSent_ShouldNotReply(setup):
 
 
 def test_Risposte_ifTextContainsExplicitTrigger_ShouldReply(setup):
-    res = _send_fake_message_to(Risposte, "this is a test")
+    res = _send_fake_message_to(Risposte, "davvero grazie mille")
     assert len(res) == 1
 
 
