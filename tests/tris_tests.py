@@ -5,6 +5,7 @@ from tests.framework.mockbot import MockBot
 from tests.framework.mockcontext import MockContext
 from tests.framework.mockdispatcher import MockDispatcher
 from tests.framework.mockupdate import MockUpdate
+from tests.test_utilities.tris_tests_utils import *
 
 bot = MockBot()
 dispatcher = MockDispatcher(bot)
@@ -128,7 +129,7 @@ def test_shouldRecognizeWin(simple_setup):
 def test_shouldRecognizeDraw(simple_setup):
     tris.cells = make_cells(XX, XX, OO,
                             OO, OO, XX,
-                            XX, OO, OO)
+                            XX, OO, XX)
     assert tris.check_patta()
 
 
@@ -142,32 +143,53 @@ def test_whenPlayerWins_shouldEndGame(setup_after_second_turn):
     assert 123 not in Tris.active_tris_games
 
 
-def is_empty_tris(markup: InlineKeyboardMarkup) -> bool:
-    cells = markup.inline_keyboard
-    return all(cells[i][j].text == Tris.EMPTY_CELL
-               for i in range(3) for j in range(3))
+@pytest.mark.parametrize("user_id", (GIOCATORE_UNO, GIOCATORE_DUE, 789))
+def test_ifGameEnded_shouldIgnorePresses(simple_setup, user_id):
+    # By default, simple_setup initializes Tris.active_tris_games to {}
+    update = MockUpdate.create_from(callback_data="tris:7", user_id=user_id, message_id=123)
+    tris.cells = expected_cells = make_cells(XX, XX, XX,
+                                             OO, OO, NN,
+                                             NN, NN, NN)
+    Tris.tris_callback(update, context)
+    assert tris.cells == expected_cells
 
 
-def make_cells(ul, uc, ur,
-               cl, cc, cr,
-               dl, dc, dr) -> InlineKeyboardMarkup:
-    return [[
-        InlineKeyboardButton(text=ul, callback_data="tris:0"),
-        InlineKeyboardButton(text=uc, callback_data="tris:1"),
-        InlineKeyboardButton(text=ur, callback_data="tris:2")
-    ],
-        [
-            InlineKeyboardButton(text=cl, callback_data="tris:3"),
-            InlineKeyboardButton(text=cc, callback_data="tris:4"),
-            InlineKeyboardButton(text=cr, callback_data="tris:5")
-        ],
-        [
-            InlineKeyboardButton(text=dl, callback_data="tris:6"),
-            InlineKeyboardButton(text=dc, callback_data="tris:7"),
-            InlineKeyboardButton(text=dr, callback_data="tris:8")
-        ]]
+def test_whenPlayerWins_shouldSendMessage(setup_after_second_turn):
+    tris.turno = 1
+    tris.cells = make_cells(XX, XX, NN,
+                            OO, OO, NN,
+                            NN, NN, NN)
+    update = MockUpdate.create_from(callback_data="tris:2",
+                                    user_first_name="Test",
+                                    user_id=GIOCATORE_UNO, message_id=123)
+    Tris.tris_callback(update, context)
+    assert len(bot.result) == 1
+    assert bot.result[0]['text'] == "Ha vinto Test"
 
 
-def are_cells_equal(first, second) -> bool:
-    return all(first[i][j].text == second[i][j].text
-               for i in range(3) for j in range(3))
+def test_whenDraw_shouldSendMessage(setup_after_second_turn):
+    tris.turno = 1
+    tris.cells = make_cells(XX, XX, OO,
+                            OO, OO, XX,
+                            XX, OO, NN)
+    update = MockUpdate.create_from(callback_data="tris:8",
+                                    user_id=GIOCATORE_UNO, message_id=123)
+    Tris.tris_callback(update, context)
+    assert len(bot.result) == 1
+    assert bot.result[0]['text'] == "Pareggio!"
+
+
+def test_whenKnownPlayerWins_shouldSendCustomMessage(setup_after_second_turn):
+    load_diz_persone()
+    USER_ID_FRANK = 143938748
+    tris.giocatore_uno = USER_ID_FRANK
+    tris.turno = 1
+    tris.cells = make_cells(XX, XX, NN,
+                            OO, OO, NN,
+                            NN, NN, NN)
+    update = MockUpdate.create_from(callback_data="tris:2",
+                                    user_first_name="Francesco",
+                                    user_id=USER_ID_FRANK, message_id=123)
+    Tris.tris_callback(update, context)
+    assert len(bot.result) == 1
+    assert bot.result[0]['text'] == "Ha vinto Serchio"
