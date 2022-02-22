@@ -40,7 +40,7 @@ class Risposte:
 
         if "intellij" in testo:
             context.bot.send_message(chat_id=chat_id,
-                                     text='i pro usano Eclipse')
+                                     text='i pro usano nano')
 
     @staticmethod
     def universita(chat_id: int, testo: str, context: CallbackContext):
