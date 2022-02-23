@@ -5,7 +5,7 @@ from os import listdir
 from telegram import Update
 from telegram.ext import CallbackContext
 
-from .utils.os_utils import get_absolute_path
+from bot_components.utils.os_utils import get_absolute_path
 
 _insieme_fica = {"vagina", "fica", "pisella", "fregna", "figa", "utero", "vulva", "gnegna", "picchia",
                  "barattolo della mostarda", "patata", "gnagna"}

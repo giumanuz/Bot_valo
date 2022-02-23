@@ -1,9 +1,13 @@
+import os
+
 import pytest
 
+import bot_components.gestore as gestore
 from bot_components.foto import Foto
 from bot_components.insulti import Insulti
 from bot_components.menu import show_menu
 from bot_components.risposte import Risposte
+from bot_components.utils.os_utils import path_to_text_file
 from tests.framework.mockbot import MockBot
 from tests.framework.mockcontext import MockContext
 from tests.framework.mockdispatcher import MockDispatcher
@@ -77,6 +81,50 @@ def test_Risposte_ifNonTriggerWordSent_ShouldNotReply(setup):
 def test_Risposte_ifTextContainsExplicitTrigger_ShouldReply(setup):
     res = _send_fake_message_to(Risposte, "davvero grazie mille")
     assert len(res) == 1
+
+
+@pytest.fixture
+def setup_fake_blacklist():
+    bot.reset_data()
+
+    original_name = path_to_text_file("schedule_blacklist.json")
+    temp_name = path_to_text_file("temp.json")
+    fake_name = path_to_text_file("test_blacklist.json")
+
+    with open(fake_name, 'x') as fake_file:
+        fake_file.write('{"monday": [0, 24], "tuesday": [0, 24], "wednesday": [0, 24],'
+                        '"thursday": [0, 24], "friday": [0, 24]}')
+
+    os.rename(original_name, temp_name)
+    os.rename(fake_name, original_name)
+    gestore.init_hour_blacklist()
+
+
+@pytest.fixture
+def teardown_fake_blacklist():
+    original_name = path_to_text_file("schedule_blacklist.json")
+    temp_name = path_to_text_file("temp.json")
+    fake_name = path_to_text_file("test_blacklist.json")
+    os.rename(original_name, fake_name)
+    os.rename(temp_name, original_name)
+    os.remove(fake_name)
+
+
+def test_Gestore_ifHourInBlacklist_ShouldNotSendPhoto(setup_fake_blacklist, teardown_fake_blacklist):
+    update = MockUpdate.from_message("mazza")
+    gestore._inoltra_messaggio(update, context)
+    assert len(bot.result) == 0
+
+
+def test_Gestore_ifHourInBlacklist_ShouldStillSendTextMessages(setup_fake_blacklist, teardown_fake_blacklist):
+    update_risposte = MockUpdate.from_message("grazie")
+    gestore._inoltra_messaggio(update_risposte, context)
+    assert len(bot.result) == 1
+    assert "text" in bot.result[0]
+    update_insulti = MockUpdate.from_message("insulta")
+    gestore._inoltra_messaggio(update_insulti, context)
+    assert len(bot.result) == 2
+    assert "text" in bot.result[1]
 
 
 def _send_fake_message_to(cls, text):

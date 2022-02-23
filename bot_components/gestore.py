@@ -27,7 +27,7 @@ def init_hour_blacklist():
             blacklisted_hours = json.load(f)
     except OSError:
         logging.warning("Errore nell'apertura del file 'schedule_blacklist.json'. "
-                        "Sicuro che si trova in /resources/text_files ?")
+                        "Sicuro che si trova in /resources/text_files/?")
 
 
 def _inoltra_messaggio(update: Update, context: CallbackContext):
@@ -40,6 +40,8 @@ def _inoltra_messaggio(update: Update, context: CallbackContext):
 def hour_in_blacklist() -> bool:
     if blacklisted_hours is None:
         return False
-    forbidden_hour_interval = blacklisted_hours.get(week_codes[datetime.datetime.now().weekday()])
+    today_as_weekday = datetime.datetime.now().weekday()
+    weekday_int_code = week_codes[today_as_weekday]
+    forbidden_hour_interval = blacklisted_hours[weekday_int_code]
     hour_now = datetime.datetime.now().hour
     return forbidden_hour_interval[0] <= hour_now < forbidden_hour_interval[1]
