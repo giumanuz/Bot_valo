@@ -38,7 +38,7 @@ def test_Insulti_ifTriggerMessage_ShouldReplyWithInsult(setup):
 def test_Foto_ifTriggerWordSent_ShouldSendPhoto(setup):
     res = _send_fake_message_to(Foto, "mazza")
     assert len(res) == 1
-    assertHasValidPhoto(res)
+    assert _has_valid_photo(res)
     bot.reset_data()
 
 
@@ -50,12 +50,22 @@ def test_Foto_ifNonTriggerWordSent_ShouldNotSendPhoto(setup):
 def test_Foto_ifTextContainsTrigger_ShouldSendPhoto(setup):
     res = _send_fake_message_to(Foto, "test mazza test")
     assert len(res) == 1
-    assertHasValidPhoto(res)
+    assert _has_valid_photo(res)
 
 
 def test_Risposte_ifTextContainsNonExplicitTrigger_ShouldNotSendPhoto(setup):
     res = _send_fake_message_to(Foto, "testmazzatest")
     assert len(res) == 0
+
+
+@pytest.mark.skip(reason="da implementare, non urgente")  # TODO
+def test_Risposte_ifTextContainsTriggerWithPunctuation_ShouldSendPhoto(setup):
+    res = _send_fake_message_to(Foto, "test, mazza, test")
+    assert len(res) == 1
+    assert _has_valid_photo(res, 0)
+    _send_fake_message_to(Foto, "test...mazza? Test.")
+    assert len(res) == 2
+    assert _has_valid_photo(res, 1)
 
 
 def test_onMenuCommand_ShouldSendMenu(setup):
@@ -127,12 +137,18 @@ def test_Gestore_ifHourInBlacklist_ShouldStillSendTextMessages(setup_fake_blackl
     assert "text" in bot.result[1]
 
 
+@pytest.mark.skip(reason="da implementare, non urgente")  # TODO
+def test_ifMoreCategoriesAreTriggered_ShouldSendMultipleMessages(setup):
+    update = MockUpdate.from_message("mazza grazie")
+    gestore._inoltra_messaggio(update, context)
+    assert len(bot.result) == 2
+
+
 def _send_fake_message_to(cls, text):
     update = MockUpdate.from_message(text)
     cls.handle_message(update, context)
     return bot.result
 
 
-def assertHasValidPhoto(res):
-    assert 'photo' in res[0]
-    assert len(res[0]['photo']) != 0
+def _has_valid_photo(res, index=0):
+    return 'photo' in res[index] and len(res[index]['photo']) != 0
