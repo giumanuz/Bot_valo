@@ -1,3 +1,5 @@
+import random
+
 from telegram import Update
 from telegram.ext import CallbackContext
 
@@ -5,56 +7,90 @@ from telegram.ext import CallbackContext
 class Risposte:
 
     @staticmethod
-    def handle_message(update: Update, context: CallbackContext):
-        testo = str(update.effective_message.text).lower()
-
-        if "grazie" in testo:
+    def linguaggi(chat_id: int, testo: str, context: CallbackContext):
+        if "py" in testo:
             context.bot.send_message(
-                chat_id=update.effective_chat.id, text='Ar cazzo')
+                chat_id=chat_id, text='Python merdaaaaaaaaaa')
 
-        if "ə" in testo:
+        if "java" in testo:
             context.bot.send_message(
-                chat_id=update.effective_chat.id, text='Ricchionǝ')
+                chat_id=chat_id, text='mannaggia ai funtori')
 
+        if "c#" in testo:
+            context.bot.send_message(
+                chat_id=chat_id, text='COOL C-Like Object Oriented Language')
+
+        if "c++" in testo:
+            context.bot.send_message(chat_id=chat_id,
+                                     text=random.choice(('Lu meju', 'TipoNodoSCL ma con le classi')))
+
+    @staticmethod
+    def software(chat_id: int, testo: str, context: CallbackContext):
         if "apple" in testo:
             context.bot.send_message(
-                chat_id=update.effective_chat.id, text='Apple >>>> Winzoz')
+                chat_id=chat_id, text='Apple >>>> Winzoz')
 
         if "windows" in testo:
-            context.bot.send_message(chat_id=update.effective_chat.id,
+            context.bot.send_message(chat_id=chat_id,
                                      text='Ma chi cazzo usa ancora quella merda di Winzoz')
 
+        if "linux" in testo:
+            context.bot.send_message(chat_id=chat_id,
+                                     text='Che hacker che sei!')
+
+        if "intellij" in testo:
+            context.bot.send_message(chat_id=chat_id,
+                                     text='i pro usano nano')
+
+    @staticmethod
+    def universita(chat_id: int, testo: str, context: CallbackContext):
         if "paolo" in testo:
-            context.bot.sendPhoto(chat_id=update.effective_chat.id,
+            context.bot.sendPhoto(chat_id=chat_id,
                                   photo="https://www.diag.uniroma1.it/~digiamb/website/Files/foto.jpg",
                                   caption="MMM che manzo")
 
         if "è 30l" in testo:
             context.bot.send_message(
-                chat_id=update.effective_chat.id, text='Per penitenza devi scrivere a Lalla')
+                chat_id=chat_id, text='Per penitenza devi scrivere a Lalla')
 
-        if "py" in testo or "python" in testo:
+        if "banal" in testo:
             context.bot.send_message(
-                chat_id=update.effective_chat.id, text='Python merdaaaaaaaaaa')
+                chat_id=chat_id, text='tanto è 30L')
 
-        if "java" in testo:
+        if "ricorsione" in testo or "ricorsiv" in testo:
             context.bot.send_message(
-                chat_id=update.effective_chat.id, text='mannaggia ai funtori')
+                chat_id=chat_id, text='La ricorsione è per naBBoltenati')
 
-        if "c#" in testo:
+        if "oro" in testo:
             context.bot.send_message(
-                chat_id=update.effective_chat.id, text='COOL C-Like Object Oriented Language')
+                chat_id=chat_id, text='Oro Colato!')
 
-        if "banale" in testo or "banalissim" in testo:
+    @staticmethod
+    def generici(chat_id: int, testo: str, context: CallbackContext):
+        if "grazie" in testo:
+            context.bot.send_message(chat_id=chat_id, text='Ar cazzo')
+
+        if "cosa?" in testo or "che?" in testo:
+            context.bot.send_message(chat_id=chat_id, text='Stocazzoooo!')
+
+        if "ə" in testo:
+            context.bot.send_message(chat_id=chat_id, text='Ricchionə')
+
+        if "ma è un uomo" in testo:
             context.bot.send_message(
-                chat_id=update.effective_chat.id, text='tanto è 30L')
+                chat_id=chat_id, text='E allora sei gay')
+
+    @staticmethod
+    def handle_message(update: Update, context: CallbackContext):
+        testo = str(update.effective_message.text).lower()
+        chat_id: int = update.effective_chat.id
+
+        Risposte.linguaggi(chat_id, testo, context)
+        Risposte.software(chat_id, testo, context)
+        Risposte.universita(chat_id, testo, context)
+        Risposte.generici(chat_id, testo, context)
 
         if "botvalo" in testo:
             if "dettu de derni" in testo:
-                context.bot.send_message(chat_id=update.effective_chat.id,
+                context.bot.send_message(chat_id=chat_id,
                                          text='Quannu Cesi ha lu cappello, turna \'ndietro e pija l\'umbrello')
-
-        # test
-        if "test" in testo and update.effective_chat.id == -1:
-            context.bot.send_message(chat_id=-1,
-                                     text='test')
