@@ -53,8 +53,10 @@ def set_Foto_delete_timer(update, context: CallbackContext):
 def hour_in_blacklist() -> bool:
     if blacklisted_hours is None:
         return False
-    today_as_weekday = datetime.datetime.now().weekday()
-    weekday_int_code = week_codes[today_as_weekday]
-    forbidden_hour_interval = blacklisted_hours[weekday_int_code]
+    today_weekday_code = datetime.datetime.now().weekday()
+    today_as_weekday = week_codes[today_weekday_code]
+    if today_as_weekday not in blacklisted_hours:
+        return False
+    forbidden_hour_interval = blacklisted_hours[today_as_weekday]
     hour_now = datetime.datetime.now().hour
     return forbidden_hour_interval[0] <= hour_now < forbidden_hour_interval[1]
