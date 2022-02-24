@@ -23,7 +23,7 @@ _insieme_culo = {"culo", "lato b", "ano", "deretano",
 
 class Foto:
 
-    REMOVAL_SECONDS = 5
+    removal_seconds: dict[int, float] = {}
 
     @classmethod
     def handle_message(cls, update: Update, context: CallbackContext):
@@ -43,7 +43,8 @@ class Foto:
             res = context.bot.sendPhoto(chat_id=update.effective_chat.id,
                                         photo=cls.__get_random_photo("tette"))
         if res is not None:
-            threading.Timer(cls.REMOVAL_SECONDS, lambda: res.delete()).start()
+            seconds = cls.removal_seconds.get(update.effective_chat.id, 5)
+            threading.Timer(seconds, lambda: res.delete()).start()
 
     @classmethod
     def __get_random_photo(cls, category: str) -> bytes:

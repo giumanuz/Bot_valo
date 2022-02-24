@@ -1,6 +1,7 @@
 import datetime
 import json
 import logging
+from re import search
 
 from telegram import Update
 from telegram.ext import CallbackContext, Dispatcher, MessageHandler, Filters
@@ -31,10 +32,22 @@ def init_hour_blacklist():
 
 
 def _inoltra_messaggio(update: Update, context: CallbackContext):
+    if "botvalo timer" in update.effective_message.text.lower():
+        set_Foto_delete_timer(update, context)
     Risposte.handle_message(update, context)
     Insulti.handle_message(update, context)
     if not hour_in_blacklist():
         Foto.handle_message(update, context)
+
+
+def set_Foto_delete_timer(update, context: CallbackContext):
+    try:
+        seconds = search(r"\d+(.\d+)?", update.effective_message.text).group(0)
+        Foto.removal_seconds[update.effective_chat.id] = float(seconds)
+        context.bot.send_message(chat_id=update.effective_chat.id,
+                                 text=f"Le foto verranno eliminate dopo {seconds} secondi")
+    except TypeError:
+        pass
 
 
 def hour_in_blacklist() -> bool:
