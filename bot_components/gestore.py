@@ -1,8 +1,9 @@
-import datetime
 import json
 import logging
+from datetime import datetime
 from re import search
 
+from pytz import utc, timezone
 from telegram import Update
 from telegram.ext import CallbackContext, Dispatcher, MessageHandler, Filters
 
@@ -53,10 +54,16 @@ def set_Foto_delete_timer(update, context: CallbackContext):
 def hour_in_blacklist() -> bool:
     if blacklisted_hours is None:
         return False
-    today_weekday_code = datetime.datetime.now().weekday()
-    today_as_weekday = week_codes[today_weekday_code]
-    if today_as_weekday not in blacklisted_hours:
+    local_now = get_now_datetime_local()
+    today_weekday_code = local_now.weekday()
+    today_as_weekday_str = week_codes[today_weekday_code]
+    if today_as_weekday_str not in blacklisted_hours:
         return False
-    forbidden_hour_interval = blacklisted_hours[today_as_weekday]
-    hour_now = datetime.datetime.now().hour
-    return forbidden_hour_interval[0] <= hour_now < forbidden_hour_interval[1]
+    forbidden_hour_interval = blacklisted_hours[today_as_weekday_str]
+    return forbidden_hour_interval[0] <= local_now.hour < forbidden_hour_interval[1]
+
+
+def get_now_datetime_local():
+    time_now_utc = datetime.utcnow()
+    local_timezone = timezone("Europe/Rome")
+    return utc.localize(time_now_utc).astimezone(local_timezone)
