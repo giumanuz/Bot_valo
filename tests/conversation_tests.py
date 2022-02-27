@@ -53,19 +53,19 @@ def test_Foto_ifTextContainsTrigger_ShouldSendPhoto(setup):
     assert _has_valid_photo(res)
 
 
-def test_Risposte_ifTextContainsNonExplicitTrigger_ShouldNotSendPhoto(setup):
-    res = _send_fake_message_to(Foto, "testmazzatest")
-    assert len(res) == 0
-
-
 @pytest.mark.skip(reason="da implementare, non urgente")  # TODO
-def test_Risposte_ifTextContainsTriggerWithPunctuation_ShouldSendPhoto(setup):
+def test_Foto_ifTextContainsTriggerWithPunctuation_ShouldSendPhoto(setup):
     res = _send_fake_message_to(Foto, "test, mazza, test")
     assert len(res) == 1
     assert _has_valid_photo(res, 0)
     _send_fake_message_to(Foto, "test...mazza? Test.")
     assert len(res) == 2
     assert _has_valid_photo(res, 1)
+
+
+def test_Risposte_ifTextContainsNonExplicitTrigger_ShouldNotSendPhoto(setup):
+    res = _send_fake_message_to(Foto, "testmazzatest")
+    assert len(res) == 0
 
 
 def test_onMenuCommand_ShouldSendMenu(setup):
