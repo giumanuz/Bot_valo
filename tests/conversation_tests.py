@@ -24,48 +24,50 @@ def setup():
 
 
 def test_Insulti_ifNonTriggerMessage_ShouldNotReply(setup):
-    res = _send_fake_message_to(Insulti, "non_trigger")
-    assert len(res) == 0
+    _send_fake_message_to(Insulti, "non_trigger")
+    assert len(bot.result) == 0
 
 
 def test_Insulti_ifTriggerMessage_ShouldReplyWithInsult(setup):
-    res = _send_fake_message_to(Insulti, "insulta")
+    _send_fake_message_to(Insulti, "insulta")
+    res = bot.result
     assert len(res) == 1
     assert 'text' in res[0]
     assert res[0].get('text')[7:] in Insulti.lista_insulti
 
 
 def test_Foto_ifTriggerWordSent_ShouldSendPhoto(setup):
-    res = _send_fake_message_to(Foto, "mazza")
-    assert len(res) == 1
-    assert _has_valid_photo(res)
-    bot.reset_data()
+    _send_fake_message_to(Foto, "mazza")
+    assert len(bot.result) == 1
+    assert _has_valid_photo(bot.result)
 
 
 def test_Foto_ifNonTriggerWordSent_ShouldNotSendPhoto(setup):
-    res = _send_fake_message_to(Foto, "non_trigger")
-    assert len(res) == 0
+    _send_fake_message_to(Foto, "non_trigger")
+    assert len(bot.result) == 0
 
 
 def test_Foto_ifTextContainsTrigger_ShouldSendPhoto(setup):
-    res = _send_fake_message_to(Foto, "test mazza test")
-    assert len(res) == 1
-    assert _has_valid_photo(res)
+    _send_fake_message_to(Foto, "test mazza test")
+    assert len(bot.result) == 1
+    assert _has_valid_photo(bot.result)
 
 
-@pytest.mark.skip(reason="da implementare, non urgente")  # TODO
 def test_Foto_ifTextContainsTriggerWithPunctuation_ShouldSendPhoto(setup):
-    res = _send_fake_message_to(Foto, "test, mazza, test")
-    assert len(res) == 1
-    assert _has_valid_photo(res, 0)
+    _send_fake_message_to(Foto, "test, mazza, test")
+    assert len(bot.result) == 1
+    assert _has_valid_photo(bot.result, 0)
     _send_fake_message_to(Foto, "test...mazza? Test.")
-    assert len(res) == 2
-    assert _has_valid_photo(res, 1)
+    assert len(bot.result) == 2
+    assert _has_valid_photo(bot.result, 1)
+    _send_fake_message_to(Foto, "test...MaZzA! Test.")
+    assert len(bot.result) == 3
+    assert _has_valid_photo(bot.result, 2)
 
 
 def test_Risposte_ifTextContainsNonExplicitTrigger_ShouldNotSendPhoto(setup):
-    res = _send_fake_message_to(Foto, "testmazzatest")
-    assert len(res) == 0
+    _send_fake_message_to(Foto, "testmazzatest")
+    assert len(bot.result) == 0
 
 
 def test_onMenuCommand_ShouldSendMenu(setup):
@@ -79,21 +81,27 @@ def test_onMenuCommand_ShouldSendMenu(setup):
 
 
 def test_Risposte_ifTriggerWordSent_ShouldReply(setup):
-    res = _send_fake_message_to(Risposte, "grazie")
-    assert len(res) == 1
+    _send_fake_message_to(Risposte, "grazie")
+    assert len(bot.result) == 1
 
 
 def test_Risposte_ifNonTriggerWordSent_ShouldNotReply(setup):
-    res = _send_fake_message_to(Risposte, "non_trigger")
-    assert len(res) == 0
+    _send_fake_message_to(Risposte, "non_trigger")
+    assert len(bot.result) == 0
 
 
 def test_Risposte_ifTextContainsExplicitTrigger_ShouldReply(setup):
-    res = _send_fake_message_to(Risposte, "davvero grazie mille")
-    assert len(res) == 1
+    _send_fake_message_to(Risposte, "davvero grazie mille")
+    assert len(bot.result) == 1
 
 
 @pytest.fixture
+def fake_blacklist():
+    setup_fake_blacklist()
+    yield
+    teardown_fake_blacklist()
+
+
 def setup_fake_blacklist():
     bot.reset_data()
 
@@ -103,30 +111,35 @@ def setup_fake_blacklist():
 
     with open(fake_name, 'x') as fake_file:
         fake_file.write('{"monday": [0, 24], "tuesday": [0, 24], "wednesday": [0, 24],'
-                        '"thursday": [0, 24], "friday": [0, 24]}')
+                        '"thursday": [0, 24], "friday": [0, 24], "saturday": [0, 24],'
+                        '"sunday": [0,24]}')
 
     os.rename(original_name, temp_name)
     os.rename(fake_name, original_name)
     gestore.init_hour_blacklist()
 
+    print("Successfully setupped fake blacklist.")
 
-@pytest.fixture
+
 def teardown_fake_blacklist():
     original_name = path_to_text_file("schedule_blacklist.json")
     temp_name = path_to_text_file("temp.json")
     fake_name = path_to_text_file("test_blacklist.json")
+
     os.rename(original_name, fake_name)
     os.rename(temp_name, original_name)
     os.remove(fake_name)
+    print("Successfully teared down fake blacklist.")
 
 
-def test_Gestore_ifHourInBlacklist_ShouldNotSendPhoto(setup_fake_blacklist, teardown_fake_blacklist):
+def test_Gestore_ifHourInBlacklist_ShouldNotSendPhoto(fake_blacklist):
+    assert gestore.hour_in_blacklist()
     update = MockUpdate.from_message("mazza")
     gestore._inoltra_messaggio(update, context)
     assert len(bot.result) == 0
 
 
-def test_Gestore_ifHourInBlacklist_ShouldStillSendTextMessages(setup_fake_blacklist, teardown_fake_blacklist):
+def test_Gestore_ifHourInBlacklist_ShouldStillSendTextMessages(fake_blacklist):
     update_risposte = MockUpdate.from_message("grazie")
     gestore._inoltra_messaggio(update_risposte, context)
     assert len(bot.result) == 1
@@ -147,7 +160,6 @@ def test_ifMoreCategoriesAreTriggered_ShouldSendMultipleMessages(setup):
 def _send_fake_message_to(cls, text):
     update = MockUpdate.from_message(text)
     cls.handle_message(update, context)
-    return bot.result
 
 
 def _has_valid_photo(res, index=0):

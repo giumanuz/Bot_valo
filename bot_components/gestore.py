@@ -1,7 +1,7 @@
 import json
 import logging
+import re
 from datetime import datetime
-from re import search
 
 from pytz import utc, timezone
 from telegram import Update
@@ -43,7 +43,7 @@ def _inoltra_messaggio(update: Update, context: CallbackContext):
 
 def set_Foto_delete_timer(update, context: CallbackContext):
     try:
-        seconds = search(r"\d+(.\d+)?", update.effective_message.text).group(0)
+        seconds = re.search(r"\d+(.\d+)?", update.effective_message.text).group(0)
         Foto.removal_seconds[update.effective_chat.id] = float(seconds)
         context.bot.send_message(chat_id=update.effective_chat.id,
                                  text=f"Le foto verranno eliminate dopo {seconds} secondi")
