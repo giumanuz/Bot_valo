@@ -8,7 +8,7 @@ from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import CallbackContext, ConversationHandler, CommandHandler, Filters, MessageHandler, \
     CallbackQueryHandler, Dispatcher
 
-from .utils.os_utils import get_absolute_path
+from utils.os_utils import get_absolute_path
 
 
 def remove_file_from_top_directory(filename: str):

@@ -1,7 +1,7 @@
 import json
 import logging
+import re
 from datetime import datetime
-from re import search
 
 from pytz import utc, timezone
 from telegram import Update
@@ -10,9 +10,10 @@ from telegram.ext import CallbackContext, Dispatcher, MessageHandler, Filters
 from bot_components.foto import Foto
 from bot_components.insulti import Insulti
 from bot_components.risposte import Risposte
-from bot_components.utils.os_utils import path_to_text_file
+from utils.os_utils import path_to_text_file
 
 week_codes = {0: "monday", 1: "tuesday", 2: "wednesday", 3: "thursday", 4: "friday", 5: "saturday", 6: "sunday"}
+# noinspection PyTypeChecker
 blacklisted_hours: dict[str, list[int]] = None
 
 
@@ -43,7 +44,7 @@ def _inoltra_messaggio(update: Update, context: CallbackContext):
 
 def set_Foto_delete_timer(update, context: CallbackContext):
     try:
-        seconds = search(r"\d+(.\d+)?", update.effective_message.text).group(0)
+        seconds = re.search(r"\d+(.\d+)?", update.effective_message.text).group(0)
         Foto.removal_seconds[update.effective_chat.id] = float(seconds)
         context.bot.send_message(chat_id=update.effective_chat.id,
                                  text=f"Le foto verranno eliminate dopo {seconds} secondi")

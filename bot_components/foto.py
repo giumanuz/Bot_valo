@@ -2,11 +2,13 @@ import logging
 import random
 import threading
 from os import listdir
+from typing import Optional
 
 from telegram import Update, Message
 from telegram.ext import CallbackContext
 
-from bot_components.utils.os_utils import get_absolute_path
+import utils.regex_parser as parser
+from utils.os_utils import get_absolute_path
 
 _insieme_fica = {"vagina", "fica", "pisella", "fregna", "figa", "utero", "vulva", "gnegna", "picchia",
                  "barattolo della mostarda", "patata", "gnagna"}
@@ -28,18 +30,18 @@ class Foto:
     @classmethod
     def handle_message(cls, update: Update, context: CallbackContext):
         testo = str(update.effective_message.text).lower()
-        parole = testo.split()
-        res: Message = None
-        if any(x == y for x in parole for y in _insieme_culo):
+        res: Optional[Message] = None
+
+        if any(parser.contains(y, testo) for y in _insieme_culo):
             res = context.bot.sendPhoto(chat_id=update.effective_chat.id,
                                         photo=cls.__get_random_photo("culo"))
-        elif any(x == y for x in parole for y in _insieme_fica):
+        elif any(parser.contains(y, testo) for y in _insieme_fica):
             res = context.bot.sendPhoto(chat_id=update.effective_chat.id,
                                         photo=cls.__get_random_photo("fica"))
-        elif any(x == y for x in parole for y in _insieme_pene):
+        elif any(parser.contains(y, testo) for y in _insieme_pene):
             res = context.bot.sendPhoto(chat_id=update.effective_chat.id,
                                         photo=cls.__get_random_photo("cazzi"))
-        elif any(x == y for x in parole for y in _insieme_tette):
+        elif any(parser.contains(y, testo) for y in _insieme_tette):
             res = context.bot.sendPhoto(chat_id=update.effective_chat.id,
                                         photo=cls.__get_random_photo("tette"))
         if res is not None:
