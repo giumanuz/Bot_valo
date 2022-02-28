@@ -7,8 +7,8 @@ from typing import Optional
 from telegram import Update, Message
 from telegram.ext import CallbackContext
 
-import bot_components.utils.regex_parser as parser
-from bot_components.utils.os_utils import get_absolute_path
+import utils.regex_parser as parser
+from utils.os_utils import get_absolute_path
 
 _insieme_fica = {"vagina", "fica", "pisella", "fregna", "figa", "utero", "vulva", "gnegna", "picchia",
                  "barattolo della mostarda", "patata", "gnagna"}

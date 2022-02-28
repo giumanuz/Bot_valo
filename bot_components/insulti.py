@@ -6,7 +6,7 @@ from os import path
 from telegram import Update
 from telegram.ext import CallbackContext
 
-import bot_components.utils.regex_parser as parser
+import utils.regex_parser as parser
 
 
 def fetch_insulti():

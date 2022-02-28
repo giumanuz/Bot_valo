@@ -3,7 +3,7 @@ import random
 from telegram import Update
 from telegram.ext import CallbackContext
 
-from bot_components.utils.regex_parser import contains
+from utils.regex_parser import contains
 
 
 class Risposte:
