@@ -6,6 +6,8 @@ from os import path
 from telegram import Update
 from telegram.ext import CallbackContext
 
+import bot_components.utils.regex_parser as parser
+
 
 def fetch_insulti():
     lista_insulti = None
@@ -29,6 +31,6 @@ class Insulti:
         testo = str(update.effective_message.text).lower()
         if cls.lista_insulti is None:
             return
-        if "insulta" in testo:
+        if parser.contains("insulta", testo):
             context.bot.send_message(chat_id=update.effective_chat.id,
                                      text=f'Cioppy {random.choice(cls.lista_insulti)}')
