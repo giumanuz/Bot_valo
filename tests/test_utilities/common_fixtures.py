@@ -3,8 +3,8 @@ import os
 import pytest
 
 import bot_components.gestore as gestore
-from bot_components.utils.os_utils import *
 from tests.framework.mockbot import MockBot
+from utils.os_utils import *
 
 # noinspection PyTypeChecker
 COMMON_BOT: MockBot = None

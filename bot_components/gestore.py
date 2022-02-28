@@ -10,9 +10,10 @@ from telegram.ext import CallbackContext, Dispatcher, MessageHandler, Filters
 from bot_components.foto import Foto
 from bot_components.insulti import Insulti
 from bot_components.risposte import Risposte
-from bot_components.utils.os_utils import path_to_text_file
+from utils.os_utils import path_to_text_file
 
 week_codes = {0: "monday", 1: "tuesday", 2: "wednesday", 3: "thursday", 4: "friday", 5: "saturday", 6: "sunday"}
+# noinspection PyTypeChecker
 blacklisted_hours: dict[str, list[int]] = None
 
 

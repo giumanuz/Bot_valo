@@ -4,7 +4,7 @@ import logging
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Update
 from telegram.ext import CallbackQueryHandler, CallbackContext, Dispatcher
 
-from bot_components.utils.os_utils import get_absolute_path
+from utils.os_utils import get_absolute_path
 
 
 def init_tris(dispatcher: Dispatcher):

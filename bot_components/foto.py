@@ -7,7 +7,7 @@ from os import listdir
 from telegram import Update, Message
 from telegram.ext import CallbackContext
 
-from bot_components.utils.os_utils import get_absolute_path
+from utils.os_utils import get_absolute_path
 
 _insieme_fica = {"vagina", "fica", "pisella", "fregna", "figa", "utero", "vulva", "gnegna", "picchia",
                  "barattolo della mostarda", "patata", "gnagna"}
@@ -29,6 +29,7 @@ class Foto:
     @classmethod
     def handle_message(cls, update: Update, context: CallbackContext):
         testo = str(update.effective_message.text).lower()
+        # noinspection PyTypeChecker
         res: Message = None
         regex_pattern = r"([^\w]|^)mazza([^\w]|$)"
 
