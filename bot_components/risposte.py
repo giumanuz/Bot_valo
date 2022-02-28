@@ -61,7 +61,7 @@ class Risposte:
 
         if contains("ricorsione" in testo or "ricorsiv", testo):
             context.bot.send_message(
-                chat_id=chat_id, text='La ricorsione è per naBBoltenati')
+                chat_id=chat_id, text='La ricorsione è per naBBoletani')
 
         if contains("oro", testo):
             context.bot.send_message(
