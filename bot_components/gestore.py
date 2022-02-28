@@ -1,6 +1,7 @@
 import json
 import logging
 import re
+import time
 from datetime import datetime
 
 from pytz import utc, timezone
@@ -33,12 +34,14 @@ def init_hour_blacklist():
 
 
 def _inoltra_messaggio(update: Update, context: CallbackContext):
+    t1 = time.perf_counter()
     if "botvalo timer" in update.effective_message.text.lower():
         set_Foto_delete_timer(update, context)
     Risposte.handle_message(update, context)
     Insulti.handle_message(update, context)
     if not hour_in_blacklist():
         Foto.handle_message(update, context)
+    logging.debug(f"Processed message in {int((time.perf_counter() - t1) * 1000)} ms")
 
 
 def set_Foto_delete_timer(update, context: CallbackContext):
