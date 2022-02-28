@@ -3,80 +3,82 @@ import random
 from telegram import Update
 from telegram.ext import CallbackContext
 
+from bot_components.utils.regex_parser import contains
+
 
 class Risposte:
 
     @staticmethod
     def linguaggi(chat_id: int, testo: str, context: CallbackContext):
-        if "py" in testo:
+        if contains("py", testo):
             context.bot.send_message(
                 chat_id=chat_id, text='Python merdaaaaaaaaaa')
 
-        if "java" in testo:
+        if contains("java", testo):
             context.bot.send_message(
                 chat_id=chat_id, text='mannaggia ai funtori')
 
-        if "c#" in testo:
+        if contains(r"c\#", testo):
             context.bot.send_message(
                 chat_id=chat_id, text='COOL C-Like Object Oriented Language')
 
-        if "c++" in testo:
+        if contains(r"c\+\+", testo):
             context.bot.send_message(chat_id=chat_id,
                                      text=random.choice(('Lu meju', 'TipoNodoSCL ma con le classi')))
 
     @staticmethod
     def software(chat_id: int, testo: str, context: CallbackContext):
-        if "apple" in testo:
+        if contains("apple", testo):
             context.bot.send_message(
                 chat_id=chat_id, text='Apple >>>> Winzoz')
 
-        if "windows" in testo:
+        if contains("windows", testo):
             context.bot.send_message(chat_id=chat_id,
                                      text='Ma chi cazzo usa ancora quella merda di Winzoz')
 
-        if "linux" in testo:
+        if contains("linux", testo):
             context.bot.send_message(chat_id=chat_id,
                                      text='Che hacker che sei!')
 
-        if "intellij" in testo:
+        if contains("intellij", testo):
             context.bot.send_message(chat_id=chat_id,
                                      text='i pro usano nano')
 
     @staticmethod
     def universita(chat_id: int, testo: str, context: CallbackContext):
-        if "paolo" in testo:
+        if contains("paolo", testo):
             context.bot.sendPhoto(chat_id=chat_id,
                                   photo="https://www.diag.uniroma1.it/~digiamb/website/Files/foto.jpg",
                                   caption="MMM che manzo")
 
-        if "è 30l" in testo:
+        if contains("è 30l", testo):
             context.bot.send_message(
                 chat_id=chat_id, text='Per penitenza devi scrivere a Lalla')
 
-        if "banal" in testo:
+        if contains("banal", testo):
             context.bot.send_message(
                 chat_id=chat_id, text='tanto è 30L')
 
-        if "ricorsione" in testo or "ricorsiv" in testo:
+        if contains("ricorsione" in testo or "ricorsiv", testo):
             context.bot.send_message(
                 chat_id=chat_id, text='La ricorsione è per naBBoltenati')
 
-        if "oro" in testo:
+        if contains("oro", testo):
             context.bot.send_message(
                 chat_id=chat_id, text='Oro Colato!')
 
     @staticmethod
     def generici(chat_id: int, testo: str, context: CallbackContext):
-        if "grazie" in testo:
+        if contains("grazie", testo):
             context.bot.send_message(chat_id=chat_id, text='Ar cazzo')
 
-        if "cosa?" in testo or "che?" in testo:
+        if contains(r"cosa\?", testo) or contains(r"che\?", testo):
             context.bot.send_message(chat_id=chat_id, text='Stocazzoooo!')
 
-        if "ə" in testo:
+        if contains("ə", testo):
             context.bot.send_message(chat_id=chat_id, text='Ricchionə')
 
-        if "ma è un uomo" in testo:
+        if contains("ma è un uomo", testo):
             context.bot.send_message(
                 chat_id=chat_id, text='E allora sei gay')
 
@@ -90,7 +92,7 @@ class Risposte:
         Risposte.universita(chat_id, testo, context)
         Risposte.generici(chat_id, testo, context)
 
-        if "botvalo" in testo:
-            if "dettu de derni" in testo:
+        if contains("botvalo", testo):
+            if contains("dettu de derni", testo):
                 context.bot.send_message(chat_id=chat_id,
-                                         text='Quannu Cesi ha lu cappello, turna \'ndietro e pija l\'umbrello')
+                                         text="Quannu Cesi ha lu cappello, turna 'ndietro e pija l'umbrello")
