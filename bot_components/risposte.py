@@ -60,7 +60,7 @@ class Risposte:
             context.bot.send_message(
                 chat_id=chat_id, text='tanto è 30L')
 
-        if contains("ricorsione" in testo or "ricorsiv", testo):
+        if contains("ricorsione", testo) or contains("ricorsivo", testo):
             context.bot.send_message(
                 chat_id=chat_id, text='La ricorsione è per naBBoletani')
 
