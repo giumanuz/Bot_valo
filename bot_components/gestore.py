@@ -20,7 +20,8 @@ blacklisted_hours: dict[str, list[int]] = None
 def add_message_handlers(dispatcher: Dispatcher):
     init_hour_blacklist()
     dispatcher.add_handler(MessageHandler(
-        Filters.text, _inoltra_messaggio, pass_user_data=True, run_async=True))
+        Filters.text | Filters.caption, _inoltra_messaggio, pass_user_data=True, run_async=True)
+    )
 
 
 def init_hour_blacklist():

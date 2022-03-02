@@ -2,10 +2,15 @@ from telegram import InlineKeyboardMarkup
 
 
 class MockMessage:
-    def __init__(self, text, message_id=-1, reply_markup: InlineKeyboardMarkup = None):
+    def __init__(self,
+                 text,
+                 message_id=-1,
+                 reply_markup: InlineKeyboardMarkup = None,
+                 caption=None):
         self._text = text
         self._message_id = message_id
         self._reply_markup = reply_markup
+        self._caption = caption
 
     @property
     def text(self):
@@ -18,6 +23,10 @@ class MockMessage:
     @property
     def reply_markup(self):
         return self._reply_markup
+
+    @property
+    def caption(self):
+        return self._caption
 
     def edit_reply_markup(self, reply_markup: InlineKeyboardMarkup):
         self._reply_markup = reply_markup

@@ -3,6 +3,7 @@ import random
 from telegram import Update
 from telegram.ext import CallbackContext
 
+import utils.telegram_utils as tgutils
 from utils.regex_parser import contains
 
 
@@ -84,7 +85,7 @@ class Risposte:
 
     @staticmethod
     def handle_message(update: Update, context: CallbackContext):
-        testo = str(update.effective_message.text).lower()
+        testo = tgutils.get_effective_text(update)
         chat_id: int = update.effective_chat.id
 
         Risposte.linguaggi(chat_id, testo, context)
