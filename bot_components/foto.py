@@ -8,6 +8,7 @@ from telegram import Update, Message
 from telegram.ext import CallbackContext
 
 import utils.regex_parser as parser
+import utils.telegram_utils as tgutils
 from utils.os_utils import get_absolute_path
 
 _insieme_fica = {"vagina", "fica", "pisella", "fregna", "figa", "utero", "vulva", "gnegna", "picchia",
@@ -29,7 +30,7 @@ class Foto:
 
     @classmethod
     def handle_message(cls, update: Update, context: CallbackContext):
-        testo = str(update.effective_message.text).lower()
+        testo = tgutils.get_effective_text(update)
         res: Optional[Message] = None
 
         if any(parser.contains(y, testo) for y in _insieme_culo):
