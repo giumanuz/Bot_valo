@@ -37,7 +37,8 @@ def init_hour_blacklist():
 def _inoltra_messaggio(update: Update, context: CallbackContext):
     if update.edited_message is not None:
         return
-    elif "botvalo timer" in update.effective_message.text.lower():
+
+    if update.effective_message.text and "botvalo timer" in update.effective_message.text:
         set_Foto_delete_timer(update, context)
     Risposte.handle_message(update, context)
     Insulti.handle_message(update, context)
