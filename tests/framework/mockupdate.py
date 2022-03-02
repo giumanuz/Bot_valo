@@ -16,6 +16,7 @@ class MockUpdate:
         self._chat = chat if chat is not None else MockChat()
         self._user = user if user is not None else MockUser()
         self._callback_query = callback_query if callback_query is not None else MockCallbackQuery("")
+        self._edited_message = None
 
     @property
     def effective_message(self):
@@ -32,6 +33,15 @@ class MockUpdate:
     @property
     def callback_query(self):
         return self._callback_query
+
+    @property
+    def edited_message(self):
+        return self._edited_message
+
+    def _edit_message(self, edited_text=""):
+        self._edited_message = self._message
+        self._edited_message._text = edited_text
+        self._message = None
 
     # Constructors
 
