@@ -23,7 +23,7 @@ class Risposte:
 
     @classmethod
     def _init(cls):
-        with open(path_to_text_file("risposte.json"), 'r') as f:
+        with open(path_to_text_file("risposte.json"), 'r', encoding="UTF-8") as f:
             cls.dict_risposte = json.load(f)
 
     @classmethod
@@ -41,6 +41,8 @@ class Risposte:
     def get_actual_value(cls, trigger):
         value = cls.dict_risposte[trigger]
         if type(value) is str and value.startswith(cls.__ALTERNATIVE_WORD):
-            value = cls.dict_risposte[value[5:]]
+            try:
+                return cls.dict_risposte[value[5:]]
+            except KeyError:
+                logging.warning(f"Non c'è l'alternativa \"{value[5:]}\" di \"{trigger}\"")
         return value
-
