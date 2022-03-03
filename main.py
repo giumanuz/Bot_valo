@@ -5,6 +5,7 @@ from telegram.ext import Updater
 
 from bot_components.gestore import add_message_handlers
 from bot_components.menu import init_menu
+from bot_components.risposte import Risposte
 
 BOT_TOKEN = "5284256332:AAHv1djfMG6QQTobd-H_jUDpmsjvMgewpNM"
 BOT_TOKEN_LOCAL = "5147856404:AAHdp2lv0mT_R2oF7BqWgANEGpSQaHiSvsI"
@@ -42,6 +43,7 @@ def get_server_port():
 def init_bot_components(dispatcher):
     logging.debug("Init components...")
     init_menu(dispatcher)
+    Risposte.init()
     add_message_handlers(dispatcher)
     logging.debug("Init done.")
 

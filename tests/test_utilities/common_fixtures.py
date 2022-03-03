@@ -1,8 +1,5 @@
-import os
-
 import pytest
 
-import bot_components.gestore as gestore
 from tests.framework.mockbot import MockBot
 from utils.os_utils import *
 
@@ -22,48 +19,39 @@ def setup():
 
 @pytest.fixture
 def full_blacklist():
-    setup_full_blacklist()
+    COMMON_BOT.reset_data()
+    old_text = setup_full_blacklist()
     yield
-    teardown_fake_blacklist()
+    teardown_fake_blacklist(old_text)
+
+
+def setup_full_blacklist():
+    return create_blacklist_and_get_old_text(
+        '{"monday": [0, 24], "tuesday": [0, 24], "wednesday": [0, 24], "thursday": [0, 24],'
+        '"friday": [0, 24], "saturday": [0, 24],"sunday": [0,24]}')
 
 
 @pytest.fixture
 def empty_blacklist():
-    setup_empty_blacklist()
-    yield
-    teardown_fake_blacklist()
-
-
-def setup_full_blacklist():
     COMMON_BOT.reset_data()
-    create_fake_blacklist('{"monday": [0, 24], "tuesday": [0, 24], "wednesday": [0, 24],'
-                          '"thursday": [0, 24], "friday": [0, 24], "saturday": [0, 24],'
-                          '"sunday": [0,24]}')
+    old_text = setup_empty_blacklist()
+    yield
+    teardown_fake_blacklist(old_text)
 
 
 def setup_empty_blacklist():
-    COMMON_BOT.reset_data()
-    create_fake_blacklist("{}")
+    return create_blacklist_and_get_old_text("{}")
 
 
-def create_fake_blacklist(text):
-    original_name = path_to_text_file("schedule_blacklist.json")
-    temp_name = path_to_text_file("temp.json")
-    fake_name = path_to_text_file("test_blacklist.json")
-    with open(fake_name, 'x') as fake_file:
-        fake_file.write(text)
-    os.rename(original_name, temp_name)
-    os.rename(fake_name, original_name)
-    gestore.init_hour_blacklist()
-    print("Successfully setupped fake blacklist.")
+def create_blacklist_and_get_old_text(new_text):
+    path_to_json = path_to_text_file("schedule_blacklist.json")
+    with open(path_to_json, 'r') as f:
+        pre_text = f.read()
+    with open(path_to_json, 'w') as f:
+        f.write(new_text)
+        return pre_text
 
 
-def teardown_fake_blacklist():
-    original_name = path_to_text_file("schedule_blacklist.json")
-    temp_name = path_to_text_file("temp.json")
-    fake_name = path_to_text_file("test_blacklist.json")
-
-    os.rename(original_name, fake_name)
-    os.rename(temp_name, original_name)
-    os.remove(fake_name)
-    print("Successfully torn down fake blacklist.")
+def teardown_fake_blacklist(pre_text):
+    with open(path_to_text_file("schedule_blacklist.json"), 'w') as f:
+        f.write(pre_text)

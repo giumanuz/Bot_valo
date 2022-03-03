@@ -1,3 +1,4 @@
+import bot_components.gestore as gestore
 from bot_components.foto import Foto
 from bot_components.insulti import Insulti
 from bot_components.menu import show_menu
@@ -10,6 +11,8 @@ from tests.test_utilities.common_tests_utils import *
 bot = MockBot()
 dispatcher = MockDispatcher(bot)
 context = MockContext(dispatcher)
+
+Risposte.init()
 
 SET_COMMON_BOT(bot)
 SET_COMMON_CONTEXT(context)
@@ -103,6 +106,7 @@ def test_Risposte_ifTextContainsExplicitTrigger_ShouldReply(setup):
 
 # noinspection PyTypeChecker
 def test_Gestore_ifHourInBlacklist_ShouldNotSendPhoto(full_blacklist):
+    gestore.init_hour_blacklist()
     assert gestore.hour_in_blacklist()
     update = MockUpdate.from_message("mazza")
     gestore._inoltra_messaggio(update, context)
@@ -111,6 +115,7 @@ def test_Gestore_ifHourInBlacklist_ShouldNotSendPhoto(full_blacklist):
 
 # noinspection PyTypeChecker
 def test_Gestore_ifHourInBlacklist_ShouldStillSendTextMessages(full_blacklist):
+    gestore.init_hour_blacklist()
     update_risposte = MockUpdate.from_message("grazie")
     gestore._inoltra_messaggio(update_risposte, context)
     assert len(bot.result) == 1
@@ -130,6 +135,7 @@ def test_Gestore_ifMessageEdited_ShouldNotReply(setup):
 
 # noinspection PyTypeChecker
 def test_ifMoreCategoriesAreTriggered_ShouldSendMultipleMessages(empty_blacklist):
+    gestore.init_hour_blacklist()
     update = MockUpdate.from_message("grazie insulta")
     gestore._inoltra_messaggio(update, context)
     assert len(bot.result) == 2
@@ -137,3 +143,11 @@ def test_ifMoreCategoriesAreTriggered_ShouldSendMultipleMessages(empty_blacklist
     update = MockUpdate.from_message("mazza grazie")
     gestore._inoltra_messaggio(update, context)
     assert len(bot.result) == 2
+
+
+def test_Risposte_alternativeTextValue(setup):
+    send_fake_message_to(Risposte, "ricorsione")
+    response = bot.result[0]['text']
+    send_fake_message_to(Risposte, "ricorsivo")
+    assert len(bot.result) == 2
+    assert response == bot.result[1]['text']

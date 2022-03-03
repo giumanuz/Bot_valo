@@ -1,99 +1,46 @@
+import json
+import logging
 import random
 
 from telegram import Update
 from telegram.ext import CallbackContext
 
 import utils.telegram_utils as tgutils
+from utils.os_utils import path_to_text_file
 from utils.regex_parser import contains
 
 
 class Risposte:
+    dict_risposte = {}
+    __ALTERNATIVE_WORD = "ALT::"
 
-    @staticmethod
-    def linguaggi(chat_id: int, testo: str, context: CallbackContext):
-        if contains("py", testo):
-            context.bot.send_message(
-                chat_id=chat_id, text='Python merdaaaaaaaaaa')
+    @classmethod
+    def init(cls):
+        try:
+            cls._init()
+        except OSError:
+            logging.error("File not found: risposte.json")
 
-        if contains("java", testo):
-            context.bot.send_message(
-                chat_id=chat_id, text='mannaggia ai funtori')
+    @classmethod
+    def _init(cls):
+        with open(path_to_text_file("risposte.json"), 'r') as f:
+            cls.dict_risposte = json.load(f)
 
-        if contains(r"c\#", testo):
-            context.bot.send_message(
-                chat_id=chat_id, text='COOL C-Like Object Oriented Language')
-
-        if contains(r"c\+\+", testo):
-            context.bot.send_message(chat_id=chat_id,
-                                     text=random.choice(('Lu meju', 'TipoNodoSCL ma con le classi')))
-
-    @staticmethod
-    def software(chat_id: int, testo: str, context: CallbackContext):
-        if contains("apple", testo):
-            context.bot.send_message(
-                chat_id=chat_id, text='Apple >>>> Winzoz')
-
-        if contains("windows", testo):
-            context.bot.send_message(chat_id=chat_id,
-                                     text='Ma chi cazzo usa ancora quella merda di Winzoz')
-
-        if contains("linux", testo):
-            context.bot.send_message(chat_id=chat_id,
-                                     text='Che hacker che sei!')
-
-        if contains("intellij", testo):
-            context.bot.send_message(chat_id=chat_id,
-                                     text='i pro usano nano')
-
-    @staticmethod
-    def universita(chat_id: int, testo: str, context: CallbackContext):
-        if contains("paolo", testo):
-            context.bot.sendPhoto(chat_id=chat_id,
-                                  photo="https://www.diag.uniroma1.it/~digiamb/website/Files/foto.jpg",
-                                  caption="MMM che manzo")
-
-        if contains("è 30l", testo):
-            context.bot.send_message(
-                chat_id=chat_id, text='Per penitenza devi scrivere a Lalla')
-
-        if contains("banal", testo):
-            context.bot.send_message(
-                chat_id=chat_id, text='tanto è 30L')
-
-        if contains("ricorsione", testo) or contains("ricorsivo", testo):
-            context.bot.send_message(
-                chat_id=chat_id, text='La ricorsione è per naBBoletani')
-
-        if contains("oro", testo):
-            context.bot.send_message(
-                chat_id=chat_id, text='Oro Colato!')
-
-    @staticmethod
-    def generici(chat_id: int, testo: str, context: CallbackContext):
-        if contains("grazie", testo):
-            context.bot.send_message(chat_id=chat_id, text='Ar cazzo')
-
-        if contains(r"cosa\?", testo) or contains(r"che\?", testo):
-            context.bot.send_message(chat_id=chat_id, text='Stocazzoooo!')
-
-        if contains("ə", testo):
-            context.bot.send_message(chat_id=chat_id, text='Ricchionə')
-
-        if contains("ma è un uomo", testo):
-            context.bot.send_message(
-                chat_id=chat_id, text='E allora sei gay')
-
-    @staticmethod
-    def handle_message(update: Update, context: CallbackContext):
+    @classmethod
+    def handle_message(cls, update: Update, context: CallbackContext):
         testo = tgutils.get_effective_text(update)
-        chat_id: int = update.effective_chat.id
+        for trigger in cls.dict_risposte:
+            if contains(trigger, testo):
+                value = cls.get_actual_value(trigger)
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text=value if type(value) is str else random.choice(value)
+                )
 
-        Risposte.linguaggi(chat_id, testo, context)
-        Risposte.software(chat_id, testo, context)
-        Risposte.universita(chat_id, testo, context)
-        Risposte.generici(chat_id, testo, context)
+    @classmethod
+    def get_actual_value(cls, trigger):
+        value = cls.dict_risposte[trigger]
+        if type(value) is str and value.startswith(cls.__ALTERNATIVE_WORD):
+            value = cls.dict_risposte[value[5:]]
+        return value
 
-        if contains("botvalo", testo):
-            if contains("dettu de derni", testo):
-                context.bot.send_message(chat_id=chat_id,
-                                         text="Quannu Cesi ha lu cappello, turna 'ndietro e pija l'umbrello")
