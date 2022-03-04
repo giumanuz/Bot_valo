@@ -10,7 +10,7 @@ class MockBot:
     def result(self):
         return self._result.copy()
 
-    def sendPhoto(self, chat_id=-1, photo: bytes = None):
+    def send_photo(self, chat_id=-1, photo: bytes = None):
         data = {'chat_id': chat_id, 'photo': photo}
         self._result.append(data)
 

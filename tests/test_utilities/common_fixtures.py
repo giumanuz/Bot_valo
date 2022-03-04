@@ -1,6 +1,7 @@
 import pytest
 
 from tests.framework.mockbot import MockBot
+from tests.framework.mockmessage import MockMessage
 from utils.os_utils import *
 
 # noinspection PyTypeChecker
@@ -10,6 +11,7 @@ COMMON_BOT: MockBot = None
 def SET_COMMON_BOT(bot):
     global COMMON_BOT
     COMMON_BOT = bot
+    MockMessage._SET_COMMON_BOT(bot)
 
 
 @pytest.fixture

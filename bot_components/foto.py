@@ -5,7 +5,6 @@ from os import listdir
 from typing import Optional
 
 from telegram import Update, Message
-from telegram.ext import CallbackContext
 
 import utils.regex_parser as parser
 import utils.telegram_utils as tgutils
@@ -29,22 +28,18 @@ class Foto:
     removal_seconds: dict[int, float] = {}
 
     @classmethod
-    def handle_message(cls, update: Update, context: CallbackContext):
+    def handle_message(cls, update: Update):
         testo = tgutils.get_effective_text(update)
         res: Optional[Message] = None
 
         if any(parser.contains(y, testo) for y in _insieme_culo):
-            res = context.bot.sendPhoto(chat_id=update.effective_chat.id,
-                                        photo=cls.__get_random_photo("culo"))
+            res = update.effective_message.reply_photo(cls.__get_random_photo("culo"))
         elif any(parser.contains(y, testo) for y in _insieme_fica):
-            res = context.bot.sendPhoto(chat_id=update.effective_chat.id,
-                                        photo=cls.__get_random_photo("fica"))
+            res = update.effective_message.reply_photo(cls.__get_random_photo("fica"))
         elif any(parser.contains(y, testo) for y in _insieme_pene):
-            res = context.bot.sendPhoto(chat_id=update.effective_chat.id,
-                                        photo=cls.__get_random_photo("cazzi"))
+            res = update.effective_message.reply_photo(cls.__get_random_photo("cazzi"))
         elif any(parser.contains(y, testo) for y in _insieme_tette):
-            res = context.bot.sendPhoto(chat_id=update.effective_chat.id,
-                                        photo=cls.__get_random_photo("tette"))
+            res = update.effective_message.reply_photo(cls.__get_random_photo("tette"))
         if res is not None:
             seconds = cls.removal_seconds.get(update.effective_chat.id, 5)
             threading.Timer(seconds, lambda: res.delete()).start()

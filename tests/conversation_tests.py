@@ -65,11 +65,11 @@ def test_Risposte_ifTextContainsTriggerWithPunctuation_ShouldReply(setup):
     update1 = MockUpdate.from_message("test, grazie, test")
     update2 = MockUpdate.from_message("test...grazie? Test.")
     update3 = MockUpdate.from_message("test...GrAzIe!Test.")
-    gestore._inoltra_messaggio(update1, context)
+    gestore._inoltra_messaggio(update1, None)
     assert len(bot.result) == 1
-    gestore._inoltra_messaggio(update2, context)
+    gestore._inoltra_messaggio(update2, None)
     assert len(bot.result) == 2
-    gestore._inoltra_messaggio(update3, context)
+    gestore._inoltra_messaggio(update3, None)
     send_fake_message_to(Foto, "test...grazie! Test.")
     assert len(bot.result) == 3
 
@@ -82,7 +82,7 @@ def test_Risposte_ifTextContainsNonExplicitTrigger_ShouldNotSendPhoto(setup):
 def test_onMenuCommand_ShouldSendMenu(setup):
     from telegram.inline.inlinekeyboardmarkup import InlineKeyboardMarkup
     update = MockUpdate.empty()
-    show_menu(update, context)
+    show_menu(update, None)
     res = bot.result
     assert len(res) == 1
     assert 'reply_markup' in res[0]

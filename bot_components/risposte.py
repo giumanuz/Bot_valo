@@ -3,7 +3,6 @@ import logging
 import random
 
 from telegram import Update
-from telegram.ext import CallbackContext
 
 import utils.telegram_utils as tgutils
 from utils.os_utils import path_to_text_file
@@ -27,14 +26,13 @@ class Risposte:
             cls.dict_risposte = json.load(f)
 
     @classmethod
-    def handle_message(cls, update: Update, context: CallbackContext):
+    def handle_message(cls, update: Update):
         testo = tgutils.get_effective_text(update)
         for trigger in cls.dict_risposte:
             if contains(trigger, testo):
                 value = cls.get_actual_value(trigger)
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=value if type(value) is str else random.choice(value)
+                update.effective_message.reply_text(
+                    value if type(value) is str else random.choice(value)
                 )
 
     @classmethod

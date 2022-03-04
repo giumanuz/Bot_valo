@@ -5,7 +5,7 @@ from datetime import datetime
 
 from pytz import utc, timezone
 from telegram import Update
-from telegram.ext import CallbackContext, Dispatcher, MessageHandler, Filters
+from telegram.ext import Dispatcher, MessageHandler, Filters
 
 from bot_components.foto import Foto
 from bot_components.insulti import Insulti
@@ -34,24 +34,23 @@ def init_hour_blacklist():
                         "Sicuro che si trova in /resources/text_files/?")
 
 
-def _inoltra_messaggio(update: Update, context: CallbackContext):
+def _inoltra_messaggio(update: Update, _):
     if update.edited_message is not None:
         return
 
     if update.effective_message.text and "botvalo timer" in update.effective_message.text:
-        set_Foto_delete_timer(update, context)
-    Risposte.handle_message(update, context)
-    Insulti.handle_message(update, context)
+        set_Foto_delete_timer(update)
+    Risposte.handle_message(update)
+    Insulti.handle_message(update)
     if not hour_in_blacklist():
-        Foto.handle_message(update, context)
+        Foto.handle_message(update)
 
 
-def set_Foto_delete_timer(update, context: CallbackContext):
+def set_Foto_delete_timer(update):
     try:
         seconds = re.search(r"\d+(.\d+)?", update.effective_message.text).group(0)
         Foto.removal_seconds[update.effective_chat.id] = float(seconds)
-        context.bot.send_message(chat_id=update.effective_chat.id,
-                                 text=f"Le foto verranno eliminate dopo {seconds} secondi")
+        update.effective_message.reply_text(f"Le foto verranno eliminate dopo {seconds} secondi")
     except TypeError:
         pass
 

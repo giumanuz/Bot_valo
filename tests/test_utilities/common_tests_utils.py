@@ -10,7 +10,7 @@ def SET_COMMON_CONTEXT(context):
 
 def send_fake_message_to(cls, text):
     update = MockUpdate.from_message(text)
-    cls.handle_message(update, COMMON_CONTEXT)
+    cls.handle_message(update)
 
 
 def has_valid_photo(res, index=0):

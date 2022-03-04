@@ -4,7 +4,6 @@ import random
 from os import path
 
 from telegram import Update
-from telegram.ext import CallbackContext
 
 import utils.regex_parser as parser
 import utils.telegram_utils as tgutils
@@ -28,10 +27,9 @@ class Insulti:
     lista_insulti = fetch_insulti()
 
     @classmethod
-    def handle_message(cls, update: Update, context: CallbackContext):
+    def handle_message(cls, update: Update):
         testo = tgutils.get_effective_text(update)
         if cls.lista_insulti is None:
             return
         if parser.contains("insulta", testo):
-            context.bot.send_message(chat_id=update.effective_chat.id,
-                                     text=f'Cioppy {random.choice(cls.lista_insulti)}')
+            update.effective_message.reply_text(f'Cioppy {random.choice(cls.lista_insulti)}')
