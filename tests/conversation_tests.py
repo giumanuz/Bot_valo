@@ -3,8 +3,13 @@ from bot_components.foto import Foto
 from bot_components.insulti import Insulti
 from bot_components.menu import show_menu
 from bot_components.risposte import Risposte
+
+from tests.framework.mockbot import MockBot
 from tests.framework.mockcontext import MockContext
 from tests.framework.mockdispatcher import MockDispatcher
+from tests.framework.mockupdate import MockUpdate
+
+# noinspection PyUnresolvedReferences
 from tests.test_utilities.common_fixtures import *
 from tests.test_utilities.common_tests_utils import *
 
@@ -13,9 +18,7 @@ dispatcher = MockDispatcher(bot)
 context = MockContext(dispatcher)
 
 Risposte.init()
-
 SET_COMMON_BOT(bot)
-SET_COMMON_CONTEXT(context)
 
 
 def test_Insulti_ifNonTriggerMessage_ShouldNotReply(setup):
@@ -24,11 +27,11 @@ def test_Insulti_ifNonTriggerMessage_ShouldNotReply(setup):
 
 
 def test_Insulti_ifTriggerMessage_ShouldReplyWithInsult(setup):
-    send_fake_message_to(Insulti, "insulta")
+    send_fake_message_to(Insulti, "insulta {}")
     res = bot.result
     assert len(res) == 1
     assert 'text' in res[0]
-    assert res[0].get('text')[7:] in Insulti.lista_insulti
+    assert res[0].get('text') in Insulti.lista_insulti
 
 
 def test_Foto_ifTriggerWordSent_ShouldSendPhoto(setup):
@@ -55,9 +58,6 @@ def test_Foto_ifTextContainsTriggerWithPunctuation_ShouldSendPhoto(setup):
     send_fake_message_to(Foto, "test...mazza? Test.")
     assert len(bot.result) == 2
     assert has_valid_photo(bot.result, 1)
-    send_fake_message_to(Foto, "test...MaZzA! Test.")
-    assert len(bot.result) == 3
-    assert has_valid_photo(bot.result, 2)
 
 
 # noinspection PyTypeChecker
@@ -120,7 +120,7 @@ def test_Gestore_ifHourInBlacklist_ShouldStillSendTextMessages(full_blacklist):
     gestore._inoltra_messaggio(update_risposte, context)
     assert len(bot.result) == 1
     assert "text" in bot.result[0]
-    update_insulti = MockUpdate.from_message("insulta")
+    update_insulti = MockUpdate.from_message("insulta Test")
     gestore._inoltra_messaggio(update_insulti, context)
     assert len(bot.result) == 2
     assert "text" in bot.result[1]
@@ -129,14 +129,14 @@ def test_Gestore_ifHourInBlacklist_ShouldStillSendTextMessages(full_blacklist):
 def test_Gestore_ifMessageEdited_ShouldNotReply(setup):
     update = MockUpdate.from_message("test")
     update._edit_message("mazza")
-    gestore._inoltra_messaggio(update, context)
+    gestore._inoltra_messaggio(update, None)
     assert len(bot.result) == 0
 
 
 # noinspection PyTypeChecker
 def test_ifMoreCategoriesAreTriggered_ShouldSendMultipleMessages(empty_blacklist):
     gestore.init_hour_blacklist()
-    update = MockUpdate.from_message("grazie insulta")
+    update = MockUpdate.from_message("grazie insulta Test")
     gestore._inoltra_messaggio(update, context)
     assert len(bot.result) == 2
     bot.reset_data()

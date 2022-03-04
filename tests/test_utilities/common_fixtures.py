@@ -1,27 +1,20 @@
 import pytest
 
-from tests.framework.mockbot import MockBot
-from tests.framework.mockmessage import MockMessage
+from tests.test_utilities.common_tests_utils import GET_COMMON_BOT
 from utils.os_utils import *
 
+
 # noinspection PyTypeChecker
-COMMON_BOT: MockBot = None
-
-
-def SET_COMMON_BOT(bot):
-    global COMMON_BOT
-    COMMON_BOT = bot
-    MockMessage._SET_COMMON_BOT(bot)
 
 
 @pytest.fixture
 def setup():
-    COMMON_BOT.reset_data()
+    GET_COMMON_BOT().reset_data()
 
 
 @pytest.fixture
 def full_blacklist():
-    COMMON_BOT.reset_data()
+    GET_COMMON_BOT().reset_data()
     old_text = setup_full_blacklist()
     yield
     teardown_fake_blacklist(old_text)
@@ -35,7 +28,7 @@ def setup_full_blacklist():
 
 @pytest.fixture
 def empty_blacklist():
-    COMMON_BOT.reset_data()
+    GET_COMMON_BOT().reset_data()
     old_text = setup_empty_blacklist()
     yield
     teardown_fake_blacklist(old_text)

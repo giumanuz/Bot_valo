@@ -1,16 +1,23 @@
-from tests.framework.mockupdate import MockUpdate
+from tests.framework.mockchat import MockChat
+from tests.framework.mockmessage import MockMessage
 
-COMMON_CONTEXT = None
+COMMON_BOT = None
 
 
-def SET_COMMON_CONTEXT(context):
-    global COMMON_CONTEXT
-    COMMON_CONTEXT = context
+def SET_COMMON_BOT(bot):
+    global COMMON_BOT
+    COMMON_BOT = bot
+    MockMessage._SET_COMMON_BOT(bot)
+    MockChat._SET_COMMON_BOT(bot)
+
+
+def GET_COMMON_BOT():
+    global COMMON_BOT
+    return COMMON_BOT
 
 
 def send_fake_message_to(cls, text):
-    update = MockUpdate.from_message(text)
-    cls.handle_message(update)
+    cls.handle_message(text, MockChat.common())
 
 
 def has_valid_photo(res, index=0):

@@ -53,8 +53,6 @@ class Snake:
              InlineKeyboardButton(text='➡️', callback_data=f'snake-{Command.GO_RIGHT}')]
         ])
 
-    # Callback handling
-
     @classmethod
     def on_menu_entry_click(cls, update: Update, context: CallbackContext):
         chat = update.effective_chat
@@ -87,19 +85,17 @@ class Snake:
         )
         return snake_game_message
 
-    # Instance init methods
-
     def __init__(self, chat: Chat):
         self.chat = chat
         self.update_loop_job: Optional[Job] = None
         self.message: Optional[Message] = None
         self.game_active = True
 
-        if chat.type == Chat.GROUP:
+        if chat.type == Chat.PRIVATE:
+            self.game_size = self.Settings.GRID_SIZE
+        else:
             self.game_size = self.Settings.GRID_SIZE_GROUP
             self.chat.send_message("Lo snake è lento nei gruppi. Provalo in chat privata!")
-        else:
-            self.game_size = self.Settings.GRID_SIZE
 
         self.square_size = self.game_size * self.game_size
         self.grid = [[self.Cell.BLANK for _ in range(self.game_size)] for _ in range(self.game_size)]
@@ -121,10 +117,10 @@ class Snake:
 
     @property
     def interval(self):
-        return (self.Settings.UPDATE_INTERVAL_GROUP if self.chat.type == Chat.GROUP
-                else self.Settings.UPDATE_INTERVAL)
-
-    # Instance methods
+        if self.chat.type == Chat.PRIVATE:
+            return self.Settings.UPDATE_INTERVAL
+        else:
+            return self.Settings.UPDATE_INTERVAL_GROUP
 
     def to_string(self) -> str:
         return '\n'.join(''.join(x) for x in self.grid)

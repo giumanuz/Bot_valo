@@ -1,12 +1,10 @@
 import json
 import logging
 import random
+import re
 from os import path
 
-from telegram import Update
-
-import utils.regex_parser as parser
-import utils.telegram_utils as tgutils
+from telegram import Chat
 
 
 def fetch_insulti():
@@ -27,9 +25,11 @@ class Insulti:
     lista_insulti = fetch_insulti()
 
     @classmethod
-    def handle_message(cls, update: Update):
-        testo = tgutils.get_effective_text(update)
+    def handle_message(cls, text: str, chat: Chat):
         if cls.lista_insulti is None:
             return
-        if parser.contains("insulta", testo):
-            update.effective_message.reply_text(f'Cioppy {random.choice(cls.lista_insulti)}')
+        s = re.search(r"(^| )insulta (.*?)$", text)
+        if s is not None:
+            chat.send_message(
+                random.choice(cls.lista_insulti).format(s.group(2))
+            )

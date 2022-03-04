@@ -4,10 +4,9 @@ import threading
 from os import listdir
 from typing import Optional
 
-from telegram import Update, Message
+from telegram import Message, Chat
 
 import utils.regex_parser as parser
-import utils.telegram_utils as tgutils
 from utils.os_utils import get_absolute_path
 
 _insieme_fica = {"vagina", "fica", "pisella", "fregna", "figa", "utero", "vulva", "gnegna", "picchia",
@@ -24,24 +23,22 @@ _insieme_culo = {"culo", "lato b", "ano", "deretano",
 
 
 class Foto:
-
     removal_seconds: dict[int, float] = {}
 
     @classmethod
-    def handle_message(cls, update: Update):
-        testo = tgutils.get_effective_text(update)
+    def handle_message(cls, text: str, chat: Chat):
         res: Optional[Message] = None
 
-        if any(parser.contains(y, testo) for y in _insieme_culo):
-            res = update.effective_message.reply_photo(cls.__get_random_photo("culo"))
-        elif any(parser.contains(y, testo) for y in _insieme_fica):
-            res = update.effective_message.reply_photo(cls.__get_random_photo("fica"))
-        elif any(parser.contains(y, testo) for y in _insieme_pene):
-            res = update.effective_message.reply_photo(cls.__get_random_photo("cazzi"))
-        elif any(parser.contains(y, testo) for y in _insieme_tette):
-            res = update.effective_message.reply_photo(cls.__get_random_photo("tette"))
+        if any(parser.contains(y, text) for y in _insieme_culo):
+            res = chat.send_photo(cls.__get_random_photo("culo"))
+        elif any(parser.contains(y, text) for y in _insieme_fica):
+            res = chat.send_photo(cls.__get_random_photo("fica"))
+        elif any(parser.contains(y, text) for y in _insieme_pene):
+            res = chat.send_photo(cls.__get_random_photo("cazzi"))
+        elif any(parser.contains(y, text) for y in _insieme_tette):
+            res = chat.send_photo(cls.__get_random_photo("tette"))
         if res is not None:
-            seconds = cls.removal_seconds.get(update.effective_chat.id, 5)
+            seconds = cls.removal_seconds.get(chat.id, 5)
             threading.Timer(seconds, lambda: res.delete()).start()
 
     @classmethod

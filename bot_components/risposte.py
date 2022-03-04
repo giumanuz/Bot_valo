@@ -2,9 +2,8 @@ import json
 import logging
 import random
 
-from telegram import Update
+from telegram import Chat
 
-import utils.telegram_utils as tgutils
 from utils.os_utils import path_to_text_file
 from utils.regex_parser import contains
 
@@ -26,12 +25,11 @@ class Risposte:
             cls.dict_risposte = json.load(f)
 
     @classmethod
-    def handle_message(cls, update: Update):
-        testo = tgutils.get_effective_text(update)
+    def handle_message(cls, text: str, chat: Chat):
         for trigger in cls.dict_risposte:
-            if contains(trigger, testo):
+            if contains(trigger, text):
                 value = cls.get_actual_value(trigger)
-                update.effective_message.reply_text(
+                chat.send_message(
                     value if type(value) is str else random.choice(value)
                 )
 
