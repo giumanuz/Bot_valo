@@ -36,7 +36,7 @@ Funziona anche se è l'alternativa di un insieme di risposte, ovvero era possibi
 Per aggiungerne di nuove, basta modificare il file `risposte.json` e aggiungere risposte seguendo la
 sintassi specificata. Per rimuoverle, basta cancellare la rispettiva riga. 
 
-> **Attenzione:** L'ultimo elemento del json preferibilmente **non deve avere la
+> **Attenzione:** L'ultimo elemento del json **non deve avere la
 virgola finale**.
 > 
 > **Nota:** Quando si elimina una risposta, bisogna stare attenti a **eliminare anche tutte le
