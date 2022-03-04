@@ -1,6 +1,6 @@
 import re
 
-__WORD_PATTERN = r"([^\w]|^){}([^\w]|$)"
+__WORD_PATTERN = r"(\W|^){}(\W|$)"
 
 
 def contains(phrase, text) -> bool:
