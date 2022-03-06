@@ -1,28 +1,19 @@
-import json
 import logging
 import random
 
 from telegram import Chat
 
-from utils.os_utils import path_to_text_file
+from utils.os_utils import get_json_data_from_file
 from utils.regex_parser import contains
 
 
 class Risposte:
-    dict_risposte = {}
+    dict_risposte = None
     __ALTERNATIVE_WORD = "ALT::"
 
     @classmethod
     def init(cls):
-        try:
-            cls._init()
-        except OSError:
-            logging.error("File not found: risposte.json")
-
-    @classmethod
-    def _init(cls):
-        with open(path_to_text_file("risposte.json"), 'r', encoding="UTF-8") as f:
-            cls.dict_risposte = json.load(f)
+        cls.dict_risposte = get_json_data_from_file("risposte.json")
 
     @classmethod
     def handle_message(cls, text: str, chat: Chat):

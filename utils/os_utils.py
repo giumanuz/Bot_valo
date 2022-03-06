@@ -21,3 +21,22 @@ def path_to_text_file(filename: str) -> str:
 
     Equivalente di `get_absolute_path(f"/resources/text_files/{filename}")`"""
     return get_absolute_path(f"resources/text_files/{filename}")
+
+
+def get_json_data_from_file(filename: str, log_error=True):
+    """Restituisce il contenuto json di un file nella cartella resources/text_files,
+    simile a `json.load(...)`, ma basta specificare il nome del file json. Se c'è un
+    errore nell'apertura del file, restituisce None. Per esempio:
+
+    `get_json_data_from_file("risposte.json")`
+
+    Se `log_error` = True (default), eventuali errori vengono loggati nella console.
+    """
+    import json
+    import logging
+    try:
+        with open(path_to_text_file(filename), 'r', encoding="UTF-8") as f:
+            return json.load(f)
+    except OSError as e:
+        if log_error:
+            logging.error(f"Error opening file {filename}: {e.strerror}")

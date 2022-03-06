@@ -4,6 +4,7 @@ from tests.framework.mockmessage import MockMessage
 COMMON_BOT = None
 
 
+# noinspection PyProtectedMember
 def SET_COMMON_BOT(bot):
     global COMMON_BOT
     COMMON_BOT = bot

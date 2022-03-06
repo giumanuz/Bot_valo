@@ -6,40 +6,30 @@ from typing import Optional
 
 from telegram import Message, Chat
 
+from utils.os_utils import get_json_data_from_file, get_absolute_path
 import utils.regex_parser as parser
-from utils.os_utils import get_absolute_path
-
-_insieme_fica = {"vagina", "fica", "pisella", "fregna", "figa", "utero", "vulva", "gnegna", "picchia",
-                 "barattolo della mostarda", "patata", "gnagna"}
-
-_insieme_tette = {"tette", "zinne", "seno", "coseno",
-                  "poppe", "mammelle", "boobs", "boob", "tetta", "zinna"}
-
-_insieme_pene = {"pene", "pisello", "cazzo", "cazzetto", "cazzone", "mazza", "bastone", "arnese", "manganello",
-                 "gingillo", "minchia", "lalla"}
-
-_insieme_culo = {"culo", "lato b", "ano", "deretano",
-                 "fondoschiena", "natiche", "natica", "sedere"}
 
 
 class Foto:
-    removal_seconds: dict[int, float] = {}
+    keywords: dict[str, list[str]] = None
+    chat_specific_removal_seconds: dict[int, float] = {}
+
+    @classmethod
+    def init(cls):
+        cls.keywords = get_json_data_from_file("keyword_foto.json")
 
     @classmethod
     def handle_message(cls, text: str, chat: Chat):
         res: Optional[Message] = None
 
-        if any(parser.contains(y, text) for y in _insieme_culo):
-            res = chat.send_photo(cls.__get_random_photo("culo"))
-        elif any(parser.contains(y, text) for y in _insieme_fica):
-            res = chat.send_photo(cls.__get_random_photo("fica"))
-        elif any(parser.contains(y, text) for y in _insieme_pene):
-            res = chat.send_photo(cls.__get_random_photo("cazzi"))
-        elif any(parser.contains(y, text) for y in _insieme_tette):
-            res = chat.send_photo(cls.__get_random_photo("tette"))
-        if res is not None:
-            seconds = cls.removal_seconds.get(chat.id, 5)
-            threading.Timer(seconds, lambda: res.delete()).start()
+        if cls.keywords is None:
+            return
+
+        for category, lst in cls.keywords.items():
+            if any(parser.contains(s, text) for s in lst):
+                res = chat.send_photo(cls.__get_random_photo(category))
+                seconds = cls.chat_specific_removal_seconds.get(chat.id, 5)
+                threading.Timer(seconds, lambda: res.delete()).start()
 
     @classmethod
     def __get_random_photo(cls, category: str) -> bytes:

@@ -18,6 +18,8 @@ dispatcher = MockDispatcher(bot)
 context = MockContext(dispatcher)
 
 Risposte.init()
+Insulti.init()
+Foto.init()
 SET_COMMON_BOT(bot)
 
 

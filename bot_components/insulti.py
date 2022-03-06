@@ -1,28 +1,16 @@
-import json
-import logging
 import random
 import re
-from os import path
+from utils.os_utils import get_json_data_from_file
 
 from telegram import Chat
 
 
-def fetch_insulti():
-    lista_insulti = None
-    path_to_json = path.join(path.dirname(__file__), "..", "resources", "text_files", "insulti.json")
-    try:
-        with open(path_to_json, 'r', encoding='UTF-8') as f:
-            lista_insulti = json.load(f)
-        logging.info("insulti.json loaded correctly.")
-    except json.JSONDecodeError:
-        logging.error("Unable to load json from file.")
-    except FileNotFoundError:
-        logging.error("File insulti.json not found.")
-    return lista_insulti
-
-
 class Insulti:
-    lista_insulti = fetch_insulti()
+    lista_insulti = None
+
+    @classmethod
+    def init(cls):
+        cls.lista_insulti = get_json_data_from_file("insulti.json")
 
     @classmethod
     def handle_message(cls, text: str, chat: Chat):
