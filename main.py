@@ -5,9 +5,9 @@ from telegram.ext import Updater
 
 from bot_components.foto import Foto
 from bot_components.gestore import add_message_handlers
+from bot_components.insulti import Insulti
 from bot_components.menu import init_menu
 from bot_components.risposte import Risposte
-from bot_components.insulti import Insulti
 
 BOT_TOKEN = "5284256332:AAHv1djfMG6QQTobd-H_jUDpmsjvMgewpNM"
 BOT_TOKEN_LOCAL = "5147856404:AAHdp2lv0mT_R2oF7BqWgANEGpSQaHiSvsI"

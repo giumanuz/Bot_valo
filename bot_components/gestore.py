@@ -51,7 +51,7 @@ def _inoltra_messaggio(update: Update, _):
 def set_Foto_delete_timer(text, chat):
     try:
         seconds = re.search(r"\d+(.\d+)?", text).group(0)
-        Foto.chat_specific_removal_seconds[chat.id] = float(seconds)
+        Foto.chats_removal_seconds[chat.id] = float(seconds)
         chat.send_message(f"Le foto verranno eliminate dopo {seconds} secondi")
     except TypeError:
         pass

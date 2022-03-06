@@ -4,7 +4,7 @@ import random
 from telegram import Chat
 
 from utils.os_utils import get_json_data_from_file
-from utils.regex_parser import contains
+from utils.regex_parser import WordParser
 
 
 class Risposte:
@@ -18,7 +18,7 @@ class Risposte:
     @classmethod
     def handle_message(cls, text: str, chat: Chat):
         for trigger in cls.dict_risposte:
-            if contains(trigger, text):
+            if WordParser.contains(trigger, text):
                 value = cls.get_actual_value(trigger)
                 chat.send_message(
                     value if type(value) is str else random.choice(value)

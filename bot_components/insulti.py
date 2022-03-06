@@ -1,8 +1,9 @@
 import random
 import re
-from utils.os_utils import get_json_data_from_file
 
 from telegram import Chat
+
+from utils.os_utils import get_json_data_from_file
 
 
 class Insulti:
