@@ -8,6 +8,5 @@ class WordParser:
         se il testo è "ciao, come stai?", darà True se `phrase` è 'ciao', oppure
         'come', oppure 'stai', ma darà False se è 'sta', 'ci', 'com'."""
         return bool(re.search(
-            cls.__WORD_PATTERN.format(re.escape(phrase)),
-            text)
+            cls.__WORD_PATTERN.format(re.escape(phrase)), text)
         )
