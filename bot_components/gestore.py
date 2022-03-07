@@ -16,7 +16,7 @@ def add_message_handlers(dispatcher: Dispatcher):
     )
 
 
-def inoltra_messaggio(update: Update, _):
+def inoltra_messaggio(update: Update, _=None):
     if has_invalid_message(update):
         return
     text, chat = get_effective_text(update), update.effective_chat

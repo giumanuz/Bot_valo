@@ -6,7 +6,7 @@ from .games.snake import init_snake
 from .prenotazioni import init_prenotazioni, Prenotazione
 
 
-def show_menu(update: Update, _):
+def show_menu(update: Update, _=None):
     command_list = InlineKeyboardMarkup(
         [
             [
@@ -28,8 +28,8 @@ def show_menu(update: Update, _):
             ]
         ]
     )
-    update.effective_message.reply_text('Inserisci la scelta',
-                                        reply_markup=command_list)
+    update.effective_chat.send_message("Inserisci la scelta",
+                                       reply_markup=command_list)
 
 
 def init_menu(dispatcher: Dispatcher):

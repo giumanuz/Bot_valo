@@ -1,3 +1,5 @@
+import pytest
+
 import bot_components.gestore as gestore
 from bot_components.foto import Foto
 from bot_components.insulti import Insulti
@@ -17,18 +19,21 @@ bot = MockBot()
 dispatcher = MockDispatcher(bot)
 context = MockContext(dispatcher)
 
-Risposte.init()
-Insulti.init()
-Foto.init()
-SET_COMMON_BOT(bot)
+
+@pytest.fixture(scope="module", autouse=True)
+def module_setup():
+    Risposte.init()
+    Insulti.init()
+    Foto.init()
+    SET_COMMON_BOT(bot)
 
 
-def test_Insulti_ifNonTriggerMessage_ShouldNotReply(setup):
+def test_Insulti_ifNonTriggerMessage_ShouldNotReply(simple_setup):
     send_fake_message_to(Insulti, "non_trigger")
     assert len(bot.result) == 0
 
 
-def test_Insulti_ifTriggerMessage_ShouldReplyWithInsult(setup):
+def test_Insulti_ifTriggerMessage_ShouldReplyWithInsult(simple_setup):
     send_fake_message_to(Insulti, "insulta {}")
     res = bot.result
     assert len(res) == 1
@@ -42,7 +47,7 @@ def test_Foto_ifTriggerWordSent_ShouldSendPhoto(empty_blacklist):
     assert has_valid_photo(bot.result)
 
 
-def test_Foto_ifNonTriggerWordSent_ShouldNotSendPhoto(setup):
+def test_Foto_ifNonTriggerWordSent_ShouldNotSendPhoto(simple_setup):
     send_fake_message_to(Foto, "non_trigger")
     assert len(bot.result) == 0
 
@@ -63,47 +68,45 @@ def test_Foto_ifTextContainsTriggerWithPunctuation_ShouldSendPhoto(empty_blackli
 
 
 # noinspection PyTypeChecker
-def test_Risposte_ifTextContainsTriggerWithPunctuation_ShouldReply(setup):
+def test_Risposte_ifTextContainsTriggerWithPunctuation_ShouldReply(simple_setup):
     update1 = MockUpdate.from_message("test, grazie, test")
     update2 = MockUpdate.from_message("test...grazie? Test.")
     update3 = MockUpdate.from_message("test...GrAzIe!Test.")
-    gestore.inoltra_messaggio(update1, None)
+    gestore.inoltra_messaggio(update1)
     assert len(bot.result) == 1
-    gestore.inoltra_messaggio(update2, None)
+    gestore.inoltra_messaggio(update2)
     assert len(bot.result) == 2
-    gestore.inoltra_messaggio(update3, None)
+    gestore.inoltra_messaggio(update3)
     send_fake_message_to(Foto, "test...grazie! Test.")
     assert len(bot.result) == 3
 
 
-def test_Risposte_ifTextContainsNonExplicitTrigger_ShouldNotSendPhoto(setup):
+def test_Risposte_ifTextContainsNonExplicitTrigger_ShouldNotSendPhoto(simple_setup):
     send_fake_message_to(Foto, "testmazzatest")
     assert len(bot.result) == 0
 
 
-def test_onMenuCommand_ShouldSendMenu(setup):
-    from telegram.inline.inlinekeyboardmarkup import InlineKeyboardMarkup
-    update = MockUpdate.empty()
-    show_menu(update, None)
-    res = bot.result
-    assert len(res) == 1
-    assert 'reply_markup' in res[0]
-    assert type(res[0]['reply_markup']) is InlineKeyboardMarkup
-
-
-def test_Risposte_ifTriggerWordSent_ShouldReply(setup):
+def test_Risposte_ifTriggerWordSent_ShouldReply(simple_setup):
     send_fake_message_to(Risposte, "grazie")
     assert len(bot.result) == 1
 
 
-def test_Risposte_ifNonTriggerWordSent_ShouldNotReply(setup):
+def test_Risposte_ifNonTriggerWordSent_ShouldNotReply(simple_setup):
     send_fake_message_to(Risposte, "non_trigger")
     assert len(bot.result) == 0
 
 
-def test_Risposte_ifTextContainsExplicitTrigger_ShouldReply(setup):
+def test_Risposte_ifTextContainsExplicitTrigger_ShouldReply(simple_setup):
     send_fake_message_to(Risposte, "davvero grazie mille")
     assert len(bot.result) == 1
+
+
+def test_Risposte_alternativeTextValue(simple_setup):
+    send_fake_message_to(Risposte, "ricorsione")
+    response = bot.result[0]['text']
+    send_fake_message_to(Risposte, "ricorsivo")
+    assert len(bot.result) == 2
+    assert response == bot.result[1]['text']
 
 
 # noinspection PyTypeChecker
@@ -126,11 +129,27 @@ def test_Gestore_ifHourInBlacklist_ShouldStillSendTextMessages(full_blacklist):
     assert "text" in bot.result[1]
 
 
-def test_Gestore_ifMessageEdited_ShouldNotReply(setup):
+def test_Gestore_ifMessageEdited_ShouldNotReply(simple_setup):
     update = MockUpdate.from_message("test")
     update._edit_message("mazza")
-    gestore.inoltra_messaggio(update, None)
+    gestore.inoltra_messaggio(update)
     assert len(bot.result) == 0
+
+
+def test_Gestore_ifMessageIsTimerCommand_ShouldChangeChatPhotoRemovalTimer(simple_setup):
+    TEST_CHAT_ID = -234410
+    TEST_CHAT = MockChat(TEST_CHAT_ID)
+
+    update1 = MockUpdate.from_message("botvalo timer 20")
+    update1._chat = TEST_CHAT
+    gestore.inoltra_messaggio(update1)
+    assert TEST_CHAT_ID in Foto.chats_removal_seconds
+    assert Foto.chats_removal_seconds[TEST_CHAT_ID] == 20
+
+    update2 = MockUpdate.from_message("botvalo timer 5.7")
+    update2._chat = TEST_CHAT
+    gestore.inoltra_messaggio(update2)
+    assert Foto.chats_removal_seconds[TEST_CHAT_ID] == 5.7
 
 
 # noinspection PyTypeChecker
@@ -144,9 +163,11 @@ def test_ifMoreCategoriesAreTriggered_ShouldSendMultipleMessages(empty_blacklist
     assert len(bot.result) == 2
 
 
-def test_Risposte_alternativeTextValue(setup):
-    send_fake_message_to(Risposte, "ricorsione")
-    response = bot.result[0]['text']
-    send_fake_message_to(Risposte, "ricorsivo")
-    assert len(bot.result) == 2
-    assert response == bot.result[1]['text']
+def test_onMenuCommand_ShouldSendMenu(simple_setup):
+    from telegram.inline.inlinekeyboardmarkup import InlineKeyboardMarkup
+    update = MockUpdate.empty()
+    show_menu(update)
+    res = bot.result
+    assert len(res) == 1
+    assert 'reply_markup' in res[0]
+    assert type(res[0]['reply_markup']) is InlineKeyboardMarkup

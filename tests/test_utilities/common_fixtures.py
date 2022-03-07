@@ -1,15 +1,15 @@
-import pytest
+from pytest import fixture
 
 from tests.test_utilities.common_tests_utils import GET_COMMON_BOT
 
 
-@pytest.fixture
-def setup():
+@fixture
+def simple_setup():
     GET_COMMON_BOT().reset_data()
 
 
 # noinspection PyProtectedMember
-@pytest.fixture
+@fixture
 def full_blacklist():
     from bot_components.foto import Foto
     GET_COMMON_BOT().reset_data()
@@ -19,7 +19,7 @@ def full_blacklist():
 
 
 # noinspection PyProtectedMember
-@pytest.fixture
+@fixture
 def empty_blacklist():
     from bot_components.foto import Foto
     GET_COMMON_BOT().reset_data()
