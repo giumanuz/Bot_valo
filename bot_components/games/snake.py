@@ -42,7 +42,7 @@ class Snake:
         UPDATE_INTERVAL = 1
         UPDATE_INTERVAL_GROUP = 3.01  # Must be at least 3
 
-    active_snake_games = {}
+    active_snake_games: dict[int, 'Snake'] = {}
 
     BUTTONS = InlineKeyboardMarkup(
         [
@@ -59,31 +59,20 @@ class Snake:
         if chat.id not in cls.active_snake_games:
             snake = Snake(chat)
             cls.active_snake_games[chat.id] = snake
-
-            snake_game_message = cls.send_snake_message(update, snake)
-            snake.set_message(snake_game_message)
-            job = context.job_queue.run_repeating(snake.go, interval=snake.interval)
-            snake.set_job(job)
+            snake.send_snake_initial_message()
+            snake.loop(context)
         else:
-            update.effective_message.reply_text("In questa chat c'è già un gioco attivo")
+            chat.send_message("In questa chat c'è già un gioco attivo")
 
     @classmethod
     def on_button_click(cls, update: Update, _):
         command = int(update.callback_query.data[6])
         chat_id = update.effective_chat.id
-        snake_game: Snake = cls.active_snake_games.get(chat_id, None)
+        snake_game = cls.active_snake_games.get(chat_id, None)
         if snake_game is None or not snake_game.game_active:
             return
         snake_game.change_direction(command)
         update.callback_query.answer()
-
-    @classmethod
-    def send_snake_message(cls, update, snake):
-        snake_game_message = update.effective_message.reply_text(
-            text=snake.to_string(),
-            reply_markup=cls.BUTTONS
-        )
-        return snake_game_message
 
     def __init__(self, chat: Chat):
         self.chat = chat
@@ -109,11 +98,17 @@ class Snake:
         self._push_snake_position()
         self.generate_new_fruit()
 
-    def set_job(self, job):
-        self.update_loop_job = job
+    def send_snake_initial_message(self):
+        self.message = self.chat.send_message(
+            text=self.to_string(),
+            reply_markup=self.BUTTONS
+        )
 
-    def set_message(self, message):
-        self.message = message
+    def to_string(self) -> str:
+        return '\n'.join(''.join(x) for x in self.grid)
+
+    def loop(self, context: CallbackContext):
+        self.update_loop_job = context.job_queue.run_repeating(self.go, self.interval)
 
     @property
     def interval(self):
@@ -121,9 +116,6 @@ class Snake:
             return self.Settings.UPDATE_INTERVAL
         else:
             return self.Settings.UPDATE_INTERVAL_GROUP
-
-    def to_string(self) -> str:
-        return '\n'.join(''.join(x) for x in self.grid)
 
     def go(self, _):
         self.move_snake()

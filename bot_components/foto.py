@@ -57,13 +57,15 @@ class Foto:
             logging.warning(f"Photo '{random_photo}' not found!")
 
     @classmethod
-    def set_chat_delete_timer(cls, text, chat):
+    def set_chat_removal_timer(cls, text, chat):
         try:
             seconds = re.search(r"\d+(.\d+)?", text).group(0)
             cls.chats_removal_seconds[chat.id] = float(seconds)
             chat.send_message(f"Le foto verranno eliminate dopo {seconds} secondi")
-        except TypeError:
-            pass
+        except (TypeError, AttributeError):
+            current_removal_seconds = cls.chats_removal_seconds.get(chat.id, 5)
+            chat.send_message(f'Le foto sono eliminate dopo {current_removal_seconds} secondi. '
+                              f'Per cambiarlo, scrivi "botvalo timer xx" dove xx sono i secondi.')
 
     @classmethod
     def hour_in_blacklist(cls) -> bool:
