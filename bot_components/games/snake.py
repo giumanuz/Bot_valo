@@ -42,7 +42,7 @@ class Snake:
         UPDATE_INTERVAL = 1
         UPDATE_INTERVAL_GROUP = 3.01  # Must be at least 3
 
-    active_snake_games = {}
+    active_snake_games: dict[int, 'Snake'] = {}
 
     BUTTONS = InlineKeyboardMarkup(
         [
@@ -53,59 +53,39 @@ class Snake:
              InlineKeyboardButton(text='➡️', callback_data=f'snake-{Command.GO_RIGHT}')]
         ])
 
-    # Callback handling
-
     @classmethod
     def on_menu_entry_click(cls, update: Update, context: CallbackContext):
-        chat_id = update.effective_chat.id
-        if chat_id not in cls.active_snake_games:
-            if update.effective_chat.type == Chat.PRIVATE:
-                snake = Snake(chat_id, context, is_group=False)
-                interval = cls.Settings.UPDATE_INTERVAL
-            else:
-                snake = Snake(chat_id, context, is_group=True)
-                interval = cls.Settings.UPDATE_INTERVAL_GROUP
-                context.bot.send_message(text="Lo snake è lento nei gruppi. Provalo in chat privata!", chat_id=chat_id)
-            cls.active_snake_games[chat_id] = snake
-
-            snake_game_message = cls.send_snake_message(chat_id, context, snake)
-            snake.set_message(snake_game_message)
-            job = context.job_queue.run_repeating(snake.go, interval=interval)
-            snake.set_job(job)
+        chat = update.effective_chat
+        if chat.id not in cls.active_snake_games:
+            snake = Snake(chat)
+            cls.active_snake_games[chat.id] = snake
+            snake.send_snake_initial_message()
+            snake.loop(context)
         else:
-            context.bot.send_message(
-                chat_id=chat_id,
-                text="In questa chat c'è già un gioco attivo"
-            )
+            chat.send_message("In questa chat c'è già un gioco attivo")
 
     @classmethod
     def on_button_click(cls, update: Update, _):
         command = int(update.callback_query.data[6])
         chat_id = update.effective_chat.id
-        snake_game: Snake = cls.active_snake_games.get(chat_id, None)
+        snake_game = cls.active_snake_games.get(chat_id, None)
         if snake_game is None or not snake_game.game_active:
             return
         snake_game.change_direction(command)
         update.callback_query.answer()
 
-    @classmethod
-    def send_snake_message(cls, chat_id, context, snake):
-        snake_game_message = context.bot.send_message(
-            chat_id=chat_id,
-            text=snake.to_string(),
-            reply_markup=cls.BUTTONS
-        )
-        return snake_game_message
-
-    # Instance init methods
-
-    def __init__(self, chat_id: int, context: CallbackContext, is_group: bool = False):
-        self.context = context
+    def __init__(self, chat: Chat):
+        self.chat = chat
         self.update_loop_job: Optional[Job] = None
-        self.chat_id = chat_id
         self.message: Optional[Message] = None
         self.game_active = True
-        self.game_size = self.Settings.GRID_SIZE_GROUP if is_group else self.Settings.GRID_SIZE
+
+        if chat.type == Chat.PRIVATE:
+            self.game_size = self.Settings.GRID_SIZE
+        else:
+            self.game_size = self.Settings.GRID_SIZE_GROUP
+            self.chat.send_message("Lo snake è lento nei gruppi. Provalo in chat privata!")
+
         self.square_size = self.game_size * self.game_size
         self.grid = [[self.Cell.BLANK for _ in range(self.game_size)] for _ in range(self.game_size)]
 
@@ -118,16 +98,24 @@ class Snake:
         self._push_snake_position()
         self.generate_new_fruit()
 
-    def set_job(self, job):
-        self.update_loop_job = job
-
-    def set_message(self, message):
-        self.message = message
-
-    # Instance methods
+    def send_snake_initial_message(self):
+        self.message = self.chat.send_message(
+            text=self.to_string(),
+            reply_markup=self.BUTTONS
+        )
 
     def to_string(self) -> str:
         return '\n'.join(''.join(x) for x in self.grid)
+
+    def loop(self, context: CallbackContext):
+        self.update_loop_job = context.job_queue.run_repeating(self.go, self.interval)
+
+    @property
+    def interval(self):
+        if self.chat.type == Chat.PRIVATE:
+            return self.Settings.UPDATE_INTERVAL
+        else:
+            return self.Settings.UPDATE_INTERVAL_GROUP
 
     def go(self, _):
         self.move_snake()
@@ -183,17 +171,11 @@ class Snake:
 
     def win(self):
         self.__deactivate_game()
-        self.send_message(f"⭐ Hai vinto! Complimenti! ⭐\nPunti totali: {self.points}")
+        self.chat.send_message(f"⭐ Hai vinto! Complimenti! ⭐\nPunti totali: {self.points}")
 
     def lose(self):
         self.__deactivate_game()
-        self.send_message(f"Hai perso!\nPunti totalizzati: {self.points}")
-
-    def send_message(self, message):
-        self.context.bot.send_message(
-            text=message,
-            chat_id=self.chat_id
-        )
+        self.chat.send_message(f"Hai perso!\nPunti totalizzati: {self.points}")
 
     def _push_snake_position(self, prev_position: tuple[int, int] = None):
         self.snake_queue.put(self.head_pos)
@@ -229,7 +211,7 @@ class Snake:
         self.update_loop_job.schedule_removal()
         self.game_active = False
         self.message.edit_reply_markup(reply_markup=None)
-        self.active_snake_games.pop(self.chat_id, None)
+        self.active_snake_games.pop(self.chat.id, None)
 
 
 def init_snake(dispatcher: Dispatcher):

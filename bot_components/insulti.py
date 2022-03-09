@@ -1,37 +1,24 @@
-import json
-import logging
 import random
-from os import path
+import re
 
-from telegram import Update
-from telegram.ext import CallbackContext
+from telegram import Chat
 
-import utils.regex_parser as parser
-import utils.telegram_utils as tgutils
-
-
-def fetch_insulti():
-    lista_insulti = None
-    path_to_json = path.join(path.dirname(__file__), "..", "resources", "text_files", "insulti.json")
-    try:
-        with open(path_to_json, 'r', encoding='UTF-8') as f:
-            lista_insulti = json.load(f)
-        logging.info("insulti.json loaded correctly.")
-    except json.JSONDecodeError:
-        logging.error("Unable to load json from file.")
-    except FileNotFoundError:
-        logging.error("File insulti.json not found.")
-    return lista_insulti
+from utils.os_utils import get_json_data_from_file
 
 
 class Insulti:
-    lista_insulti = fetch_insulti()
+    lista_insulti = None
 
     @classmethod
-    def handle_message(cls, update: Update, context: CallbackContext):
-        testo = tgutils.get_effective_text(update)
+    def init(cls):
+        cls.lista_insulti = get_json_data_from_file("insulti.json")
+
+    @classmethod
+    def handle_message(cls, text: str, chat: Chat):
         if cls.lista_insulti is None:
             return
-        if parser.contains("insulta", testo):
-            context.bot.send_message(chat_id=update.effective_chat.id,
-                                     text=f'Cioppy {random.choice(cls.lista_insulti)}')
+        s = re.search(r"(^| )insulta (.*?)$", text)
+        if s is not None:
+            chat.send_message(
+                random.choice(cls.lista_insulti).format(s.group(2))
+            )
