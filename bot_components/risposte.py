@@ -3,7 +3,7 @@ import random
 
 from telegram import Chat
 
-from utils.os_utils import get_json_data_from_file
+from utils.db_utils import get_json_data_from_db
 from utils.regex_parser import WordParser
 
 
@@ -13,7 +13,7 @@ class Risposte:
 
     @classmethod
     def init(cls):
-        cls.dict_risposte = get_json_data_from_file("risposte.json")
+        cls.dict_risposte = get_json_data_from_db("configs/risposte.json")
 
     @classmethod
     def handle_message(cls, text: str, chat: Chat):

@@ -6,8 +6,8 @@ from os import listdir
 
 from telegram import Chat
 
-from utils.os_utils import get_json_data_from_file, get_absolute_path, get_current_local_datetime, \
-    get_current_weekday_name
+from utils.db_utils import get_json_data_from_db
+from utils.os_utils import get_absolute_path, get_current_local_datetime, get_current_weekday_name
 from utils.regex_parser import WordParser
 
 
@@ -19,12 +19,12 @@ class Foto:
 
     @classmethod
     def init(cls):
-        cls.keywords = get_json_data_from_file("keyword_foto.json")
+        cls.keywords = get_json_data_from_db("configs/keyword_foto.json")
         cls._init_blacklist()
 
     @classmethod
     def _init_blacklist(cls):
-        cls.blacklisted_hours = get_json_data_from_file("schedule_blacklist.json")
+        cls.blacklisted_hours = get_json_data_from_db("configs/schedule_blacklist.json")
 
     @classmethod
     def _empty_blacklist(cls):

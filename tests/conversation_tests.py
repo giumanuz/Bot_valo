@@ -1,16 +1,16 @@
 import pytest
+from dotenv import load_dotenv
 
 import bot_components.gestore as gestore
 from bot_components.foto import Foto
 from bot_components.insulti import Insulti
 from bot_components.menu import show_menu
 from bot_components.risposte import Risposte
-
+from main import setup_firebase
 from tests.framework.mockbot import MockBot
 from tests.framework.mockcontext import MockContext
 from tests.framework.mockdispatcher import MockDispatcher
 from tests.framework.mockupdate import MockUpdate
-
 # noinspection PyUnresolvedReferences
 from tests.test_utilities.common_fixtures import *
 from tests.test_utilities.common_tests_utils import *
@@ -22,6 +22,8 @@ context = MockContext(dispatcher)
 
 @pytest.fixture(scope="module", autouse=True)
 def module_setup():
+    load_dotenv()
+    setup_firebase()
     Risposte.init()
     Insulti.init()
     Foto.init()
