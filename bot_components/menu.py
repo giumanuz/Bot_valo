@@ -1,4 +1,4 @@
-from telegram import InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Update
 from telegram.ext import CommandHandler, Dispatcher
 
 from bot_components.games.tris import init_tris
@@ -6,7 +6,7 @@ from .games.snake import init_snake
 from .prenotazioni import init_prenotazioni, Prenotazione
 
 
-def show_menu(update, context):
+def show_menu(update: Update, _=None):
     command_list = InlineKeyboardMarkup(
         [
             [
@@ -28,14 +28,12 @@ def show_menu(update, context):
             ]
         ]
     )
-    context.bot.send_message(chat_id=update.effective_chat.id,
-                             text='Inserisci la scelta',
-                             reply_markup=command_list)
+    update.effective_chat.send_message("Inserisci la scelta",
+                                       reply_markup=command_list)
 
 
 def init_menu(dispatcher: Dispatcher):
-    dispatcher.add_handler(CommandHandler(
-        "Menu", show_menu, run_async=True))
+    dispatcher.add_handler(CommandHandler("Menu", show_menu, run_async=True))
     init_prenotazioni(dispatcher)
     init_tris(dispatcher)
     init_snake(dispatcher)
