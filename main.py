@@ -29,7 +29,6 @@ def main():
     dispatcher = updater.dispatcher
 
     setup_firebase()
-
     init_bot_components(dispatcher)
 
     if is_server:

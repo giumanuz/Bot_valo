@@ -3,7 +3,7 @@ import re
 
 from telegram import Chat
 
-from utils.db_utils import get_json_data_from_db
+from utils.db_utils import get_json_data
 
 
 class Insulti:
@@ -11,7 +11,7 @@ class Insulti:
 
     @classmethod
     def init(cls):
-        cls.lista_insulti = get_json_data_from_db("configs/insulti.json")
+        cls.lista_insulti = get_json_data("configs/insulti.json")
 
     @classmethod
     def handle_message(cls, text: str, chat: Chat):

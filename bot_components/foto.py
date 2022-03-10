@@ -1,13 +1,11 @@
-import logging
 import random
 import re
 import threading
-from os import listdir
 
 from telegram import Chat
 
-from utils.db_utils import get_json_data_from_db
-from utils.os_utils import get_absolute_path, get_current_local_datetime, get_current_weekday_name
+from utils.db_utils import get_json_data, get_photos_dict
+from utils.os_utils import get_current_local_datetime, get_current_weekday_name
 from utils.regex_parser import WordParser
 
 
@@ -15,16 +13,19 @@ class Foto:
     keywords: dict[str, list[str]] = {}
     blacklisted_hours: dict[str, list[int]] = {}
     chats_removal_seconds: dict[int, float] = {}
+    photos = {}
+    available_photos: {}
     __DEFAULT_REMOVAL_SECONDS = 5
 
     @classmethod
     def init(cls):
-        cls.keywords = get_json_data_from_db("configs/keyword_foto.json")
+        cls.keywords = get_json_data("configs/keyword_foto.json")
         cls._init_blacklist()
+        cls.photos = get_photos_dict()
 
     @classmethod
     def _init_blacklist(cls):
-        cls.blacklisted_hours = get_json_data_from_db("configs/schedule_blacklist.json")
+        cls.blacklisted_hours = get_json_data("configs/schedule_blacklist.json")
 
     @classmethod
     def _empty_blacklist(cls):
@@ -48,13 +49,9 @@ class Foto:
 
     @classmethod
     def __get_random_photo(cls, category: str) -> bytes:
-        directory = get_absolute_path(f"/resources/photos/{category}")
-        random_photo = f"{directory}/{random.choice(listdir(directory))}"
-        try:
-            with open(random_photo, "rb") as photo:
-                return photo.read()
-        except FileNotFoundError:
-            logging.warning(f"Photo '{random_photo}' not found!")
+        blobs = cls.photos[f"images/{category}/"]
+        random_photo_blob = random.choice(blobs)
+        return random_photo_blob.download_as_bytes()
 
     @classmethod
     def set_chat_removal_timer(cls, text, chat):

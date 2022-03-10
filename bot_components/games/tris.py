@@ -1,7 +1,7 @@
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Update
 from telegram.ext import CallbackQueryHandler, CallbackContext, Dispatcher
 
-from utils.db_utils import get_json_data_from_db
+from utils.db_utils import get_json_data
 
 
 def init_tris(dispatcher: Dispatcher):
@@ -11,7 +11,7 @@ def init_tris(dispatcher: Dispatcher):
 
 
 def load_diz_persone():
-    Tris.diz_persone = get_json_data_from_db("configs/id_persone.json")
+    Tris.diz_persone = get_json_data("configs/id_persone.json")
 
 
 def get_coordinate(update: Update):
