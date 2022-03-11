@@ -29,7 +29,6 @@ class FirebaseStorage(Database):
     def register_for_config_changes(self, document: str, callback):
         config_doc = self._get_config_doc(document)
         config_doc.on_snapshot(lambda x, y, z: callback())
-        print(f"Registered callback {callback.__name__} for changes in {document}")
 
     def _get_config_doc(self, document: str):
         configs = self._firestore_client.collection("configs")
