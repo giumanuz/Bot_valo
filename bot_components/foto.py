@@ -4,6 +4,7 @@ import threading
 
 from telegram import Chat
 
+from bot_components.db.db_manager import Database
 from utils.db_utils import get_json_data, get_photos_dict
 from utils.os_utils import get_current_local_datetime, get_current_weekday_name
 from utils.regex_parser import WordParser
@@ -49,9 +50,10 @@ class Foto:
 
     @classmethod
     def __get_random_photo(cls, category: str) -> bytes:
-        blobs = cls.photos[f"images/{category}/"]
-        random_photo_blob = random.choice(blobs)
-        return random_photo_blob.download_as_bytes()
+        db = Database.get()
+        files = db.files_in_directory(f"images/{category}")
+        random_file = random.choice(files)
+        return db.download_as_photo(random_file)
 
     @classmethod
     def set_chat_removal_timer(cls, text, chat):

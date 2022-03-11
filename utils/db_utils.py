@@ -1,9 +1,6 @@
-import random
-import re
-from json import loads
 from logging import error
 
-from bot_components.firebase_manager import FirebaseApp
+from bot_components.db.db_manager import Database
 
 
 def get_json_data(path, log_error=True):
@@ -16,30 +13,20 @@ def get_json_data(path, log_error=True):
     Se `log_error` = True (default), eventuali errori vengono loggati nella console.
     """
     try:
-        blob = FirebaseApp.storage_bucket.get_blob(path)
-        json_str = blob.download_as_text()
-        parsed_json = loads(json_str)
-        return parsed_json
+        # blob = FirebaseStorage.storage_bucket.get_blob(path)
+        # json_str = blob.download_as_text()
+        # parsed_json = loads(json_str)
+        # return parsed_json
+        db = Database.get()
+        print(type(db))
+        return db.download_as_json(path)
     except AttributeError as e:
         if log_error:
             error(f"Error downloading file {path}: {e}")
         return {}
 
 
-def get_photo(path):
-    sb = FirebaseApp.storage_bucket
-    bbs = list(sb.list_blobs(prefix=path))[1:]
-    b = random.choice(bbs)
-    return b.download_as_bytes()
-
-
-def _get_main_photo_folders():
-    sb = FirebaseApp.storage_bucket
-    image_blobs_list = sb.list_blobs(prefix="images/")
-    return [x.name for x in image_blobs_list if re.fullmatch(r"images/\w+/", x.name)]
-
-
 def get_photos_dict():
-    folders = _get_main_photo_folders()
-    sb = FirebaseApp.storage_bucket
-    return {f: list(sb.list_blobs(prefix=f))[1:] for f in folders}
+    db = Database.get()
+    folders = db.folders_in_directory("images")
+    return {f: db.files_in_directory(f) for f in folders}

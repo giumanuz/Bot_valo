@@ -6,7 +6,8 @@ from dotenv import load_dotenv
 from firebase_admin.credentials import Certificate
 from telegram.ext import Updater
 
-from bot_components.firebase_manager import FirebaseApp
+from bot_components.db.db_manager import Database
+from bot_components.db.firebase_manager import FirebaseStorage
 from bot_components.foto import Foto
 from bot_components.gestore import add_message_handlers
 from bot_components.insulti import Insulti
@@ -61,9 +62,10 @@ def init_bot_components(dispatcher):
 
 def setup_firebase():
     path = get_absolute_path("botvalo_firebase_credentials.json")
-    FirebaseApp.app = firebase_admin.initialize_app(Certificate(path))
+    FirebaseStorage.app = firebase_admin.initialize_app(Certificate(path))
     STORAGE_BUCKET_NAME = environment_variables["FIREBASE_BUCKET_NAME"]
-    FirebaseApp.set_storage_bucket(STORAGE_BUCKET_NAME)
+    FirebaseStorage.set_storage_bucket(STORAGE_BUCKET_NAME)
+    Database._CURRENT_DB = FirebaseStorage
 
 
 def get_updater(token: str) -> Updater:
