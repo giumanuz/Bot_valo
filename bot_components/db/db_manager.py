@@ -16,21 +16,37 @@ class Database(ABSTRACT_CLASS):
         return cls._INSTANCE
 
     @abstractmethod
-    def files_in_directory(self, folder: str) -> list:
+    def register_for_config_changes(self, document: str, callback):
         ...
 
     @abstractmethod
-    def folders_in_directory(self, folder: str) -> list:
+    def get_lista_insulti(self) -> list[str]:
         ...
 
     @abstractmethod
-    def download_as_text(self, location) -> str:
+    def get_keyword_foto(self) -> dict[str, list[str]]:
         ...
 
     @abstractmethod
-    def download_as_json(self, location) -> dict:
+    def get_nicknames(self) -> dict[int, str]:
         ...
 
     @abstractmethod
-    def download_as_photo(self, location) -> bytes:
+    def get_risposte(self) -> dict[int, any]:
+        ...
+
+    @abstractmethod
+    def get_schedule_blacklist(self) -> dict[str, list[str]]:
+        ...
+
+    @abstractmethod
+    def get_random_photo(self, category: str) -> bytes:
+        ...
+
+    @abstractmethod
+    def get_chat_removal_seconds(self, chat_id: int, default=5) -> dict:
+        ...
+
+    @abstractmethod
+    def set_chat_removal_seconds(self, chat_id: int, seconds: float):
         ...

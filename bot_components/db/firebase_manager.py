@@ -1,45 +1,78 @@
-import json
-import re
+import os
+import random
 
-import firebase_admin
-import firebase_admin.storage as fbs
+from firebase_admin import firestore, App, initialize_app, storage
+from firebase_admin.credentials import Certificate
 
 from bot_components.db.db_manager import Database
+from utils.os_utils import get_absolute_path
 
 
 class FirebaseStorage(Database):
-    app: firebase_admin.App = None
-    storage_bucket: fbs.storage.Bucket = None
+    _app: App = None
+    _storage_bucket: storage.storage.Bucket = None
+    _firestore_client: firestore.firestore.Client = None
 
     @classmethod
-    def set_storage_bucket(cls, name: str):
-        print("Storage bucket set")
-        cls.storage_bucket = fbs.bucket(name)
+    def init(cls, credentials_path):
+        path = get_absolute_path(credentials_path)
+        cred = Certificate(path)
+        cls._app = initialize_app(cred)
+        cls._firestore_client = firestore.client()
+        STORAGE_BUCKET_NAME = os.environ["FIREBASE_BUCKET_NAME"]
+        cls._storage_bucket = storage.bucket(STORAGE_BUCKET_NAME)
 
-    def download_as_text(self, location) -> str:
-        blob = self.storage_bucket.get_blob(location)
-        return blob.download_as_text()
+    @classmethod
+    def set_as_default_database(cls):
+        Database._CURRENT_DB = FirebaseStorage
 
-    def download_as_json(self, location) -> dict:
-        blob = self.storage_bucket.get_blob(location)
-        json_str = blob.download_as_text()
-        return json.loads(json_str)
+    def register_for_config_changes(self, document: str, callback):
+        config_doc = self._get_config_doc(document)
+        config_doc.on_snapshot(lambda x, y, z: callback())
+        print(f"Registered callback {callback.__name__} for changes in {document}")
 
-    def download_as_photo(self, location) -> bytes:
-        # TODO: Ripensare il sistema di blob, perché dovrebbe essere come segue:
-        #       blob = self.storage_bucket.get_blob(location)
-        #       invece, files_in_directory(...) restituisce una lista di blob
-        return location.download_as_bytes()
+    def _get_config_doc(self, document: str):
+        configs = self._firestore_client.collection("configs")
+        return configs.document(document)
 
-    def files_in_directory(self, folder: str) -> list:
-        # TODO: Le cartelle sono cercate tramite regex, mentre questa implementazione
-        #       non funziona se ci sono sottocartelle.
-        elements = self.storage_bucket.list_blobs(prefix=f"{folder}/")
-        files = list(elements)[1:]
-        return files
+    def _get_config_doc_as_dict(self, document: str):
+        configs = self._firestore_client.collection("configs")
+        document = configs.document(document)
+        return document.get().to_dict()
 
-    def folders_in_directory(self, folder: str) -> list:
-        elements = self.storage_bucket.list_blobs(prefix=f"{folder}/")
-        pattern_to_search = rf"{folder}/\w+/" if folder else r"\w+/"
-        folders = [re.fullmatch(pattern_to_search, x.name) for x in elements]
-        return folders
+    def get_lista_insulti(self) -> list[str]:
+        doc_insulti = self._get_config_doc("insulti")
+        dict_insulti = doc_insulti.get(['insulti']).to_dict()
+        lista_insulti = dict_insulti['insulti']
+        return lista_insulti
+
+    def get_keyword_foto(self) -> dict[str, list[str]]:
+        return self._get_config_doc_as_dict("keyword_foto")
+
+    def get_nicknames(self) -> dict[int, str]:
+        return self._get_config_doc_as_dict("nicknames")
+
+    def get_risposte(self) -> dict[int, any]:
+        return self._get_config_doc_as_dict("risposte")
+
+    def get_schedule_blacklist(self) -> dict[str, list[str]]:
+        return self._get_config_doc_as_dict("schedule_blacklist")
+
+    def get_random_photo(self, category: str) -> bytes:
+        blobs_in_directory = self._storage_bucket.list_blobs(
+            prefix=f"images/{category}/"
+        )
+        photos_list = list(blobs_in_directory)[1:]
+        random_photo = random.choice(photos_list)
+        bts = random_photo.download_as_bytes()
+        return bts
+
+    def get_chat_removal_seconds(self, chat_id: int, default=5) -> dict:
+        chat_id = str(chat_id)
+        doc = self._get_config_doc("chat_removal_seconds")
+        return doc.get().to_dict().get(chat_id, default)
+
+    def set_chat_removal_seconds(self, chat_id: int, seconds: float):
+        chat_id = str(chat_id)
+        doc = self._get_config_doc("chat_removal_seconds")
+        doc.update({chat_id: seconds})

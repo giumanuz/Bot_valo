@@ -1,9 +1,7 @@
 import logging
 from os import environ as environment_variables
 
-import firebase_admin
 from dotenv import load_dotenv
-from firebase_admin.credentials import Certificate
 from telegram.ext import Updater
 
 from bot_components.db.db_manager import Database
@@ -13,7 +11,6 @@ from bot_components.gestore import add_message_handlers
 from bot_components.insulti import Insulti
 from bot_components.menu import init_menu
 from bot_components.risposte import Risposte
-from utils.os_utils import get_absolute_path
 
 
 def main():
@@ -29,7 +26,7 @@ def main():
     updater = get_updater(BOT_TOKEN) if is_server else get_updater(BOT_TOKEN_LOCAL)
     dispatcher = updater.dispatcher
 
-    setup_firebase()
+    setup_db()
     init_bot_components(dispatcher)
 
     if is_server:
@@ -50,6 +47,11 @@ def get_server_port():
     return int(environment_variables.get('PORT', 8443))
 
 
+def setup_db():
+    Database.set_db_type(FirebaseStorage)
+    FirebaseStorage.init("botvalo_firebase_credentials.json")
+
+
 def init_bot_components(dispatcher):
     logging.debug("Init components...")
     init_menu(dispatcher)
@@ -58,14 +60,6 @@ def init_bot_components(dispatcher):
     Foto.init()
     add_message_handlers(dispatcher)
     logging.debug("Init done.")
-
-
-def setup_firebase():
-    path = get_absolute_path("botvalo_firebase_credentials.json")
-    FirebaseStorage.app = firebase_admin.initialize_app(Certificate(path))
-    STORAGE_BUCKET_NAME = environment_variables["FIREBASE_BUCKET_NAME"]
-    FirebaseStorage.set_storage_bucket(STORAGE_BUCKET_NAME)
-    Database._CURRENT_DB = FirebaseStorage
 
 
 def get_updater(token: str) -> Updater:

@@ -2,11 +2,12 @@ import pytest
 from dotenv import load_dotenv
 
 import bot_components.gestore as gestore
+import utils.os_utils
+from bot_components.db.firebase_manager import FirebaseStorage
 from bot_components.foto import Foto
 from bot_components.insulti import Insulti
 from bot_components.menu import show_menu
 from bot_components.risposte import Risposte
-from main import setup_firebase
 from tests.framework.mockbot import MockBot
 from tests.framework.mockcontext import MockContext
 from tests.framework.mockdispatcher import MockDispatcher
@@ -23,7 +24,7 @@ context = MockContext(dispatcher)
 @pytest.fixture(scope="module", autouse=True)
 def module_setup():
     load_dotenv()
-    setup_firebase()
+    FirebaseStorage.init(utils.os_utils.get_absolute_path("botvalo_firebase_credentials.json"))
     Risposte.init()
     Insulti.init()
     Foto.init()
