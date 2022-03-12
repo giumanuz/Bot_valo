@@ -5,7 +5,6 @@ from firebase_admin import firestore, App, initialize_app, storage
 from firebase_admin.credentials import Certificate
 
 from bot_components.db.db_manager import Database
-from utils.os_utils import get_absolute_path
 
 
 class FirebaseStorage(Database):
@@ -13,14 +12,31 @@ class FirebaseStorage(Database):
     _storage_bucket: storage.storage.Bucket = None
     _firestore_client: firestore.firestore.Client = None
 
+    credentials_dict = {
+        "type": "service_account",
+        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+        "token_uri": "https://oauth2.googleapis.com/token",
+        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs"
+    }
+
     @classmethod
-    def init(cls, credentials_path):
-        path = get_absolute_path(credentials_path)
-        cred = Certificate(path)
+    def init(cls):
+        STORAGE_BUCKET_NAME = os.environ["FB_BUCKET_NAME"]
+        cls._init_credentials()
+        cred = Certificate(cls.credentials_dict)
         cls._app = initialize_app(cred)
         cls._firestore_client = firestore.client()
-        STORAGE_BUCKET_NAME = os.environ["FIREBASE_BUCKET_NAME"]
         cls._storage_bucket = storage.bucket(STORAGE_BUCKET_NAME)
+
+    @classmethod
+    def _init_credentials(cls):
+        private_key = os.environ["FB_CREDENTIALS_PRIVATE_KEY"].replace('\\n', '\n')
+        client_email = os.environ["FB_CLIENT_EMAIL"]
+        cls.credentials_dict["project_id"] = os.environ["FB_PROJECT_ID"]
+        cls.credentials_dict["private_key_id"] = os.environ["FB_CREDENTIALS_KEY_ID"]
+        cls.credentials_dict["private_key"] = private_key
+        cls.credentials_dict["client_id"] = os.environ["FB_CLIENT_ID"]
+        cls.credentials_dict["client_email"] = client_email
 
     @classmethod
     def set_as_default_database(cls):

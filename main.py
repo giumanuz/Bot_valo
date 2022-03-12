@@ -49,7 +49,7 @@ def get_server_port():
 
 def setup_db():
     Database.set_db_type(FirebaseStorage)
-    FirebaseStorage.init("botvalo_firebase_credentials.json")
+    FirebaseStorage.init()
 
 
 def init_bot_components(dispatcher):
