@@ -73,7 +73,7 @@ def test_Foto_ifTextContainsTriggerWithPunctuation_ShouldSendPhoto(empty_blackli
     assert has_valid_photo(bot.result, 1)
 
 
-def test_Foto_ifTextContainsNonExplicitTrigger_ShouldNotSendPhoto(simple_setup):
+def test_Foto_ifTextContainsNonExplicitTrigger_ShouldNotSendPhoto(empty_blacklist):
     send_fake_message_to(Foto, "testmazzatest")
     assert len(bot.result) == 0
 
@@ -155,6 +155,18 @@ def test_Gestore_ifMessageIsTimerCommand_ShouldChangeChatPhotoRemovalTimer(simpl
     update2._chat = TEST_CHAT
     gestore.inoltra_messaggio(update2)
     assert db.get_chat_removal_seconds(TEST_CHAT_ID) == 5.7
+
+
+def test_Foto_onTimerCommandWithoutParameters_ShouldNotChangeChatPhotoRemovalTimer(simple_setup):
+    TEST_CHAT_ID = -234410
+    db.set_chat_removal_seconds(TEST_CHAT_ID, 1752)
+
+    update = MockUpdate.from_message("botvalo timer")
+    update._chat = MockChat(TEST_CHAT_ID)
+    gestore.inoltra_messaggio(update)
+    assert db.get_chat_removal_seconds(TEST_CHAT_ID) == 1752
+    assert len(bot.result) == 1
+    assert "1752" in bot.result[0]['text']
 
 
 # noinspection PyTypeChecker
