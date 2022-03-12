@@ -18,6 +18,8 @@ def main():
     SERVER_PORT = get_server_port()
     is_server = 'ON_HEROKU' in environment_variables
 
+    check_environment_variables(True)
+
     logging.basicConfig(level=logging.WARNING)
 
     BOT_TOKEN = environment_variables.get("BOT_TOKEN")
@@ -47,6 +49,23 @@ def get_server_port():
     return int(environment_variables.get('PORT', 8443))
 
 
+def check_environment_variables(is_server):
+    required_envs = ("FB_PROJECT_ID",
+                     "FB_CREDENTIALS_KEY_ID",
+                     "FB_CREDENTIALS_PRIVATE_KEY",
+                     "FB_CLIENT_EMAIL",
+                     "FB_CLIENT_ID",
+                     "FB_BUCKET_NAME",
+                     "BOT_TOKEN" if is_server else "BOT_TOKEN_LOCAL")
+    error = False
+    for env in required_envs:
+        if env not in environment_variables:
+            logging.critical(f"Missing required environment variable: {env}")
+            error = True
+    if error:
+        exit(ExitCode.MISSING_REQUIRED_ENV)
+
+
 def setup_db():
     Database.set_db_type(FirebaseStorage)
     FirebaseStorage.init()
@@ -64,6 +83,12 @@ def init_bot_components(dispatcher):
 
 def get_updater(token: str) -> Updater:
     return Updater(token=token, use_context=True)
+
+
+class ExitCode:
+    OK = 0
+    UNKNOWN_ERROR = 1
+    MISSING_REQUIRED_ENV = 2
 
 
 if __name__ == '__main__':
