@@ -1,27 +1,34 @@
 import logging
 from os import environ as environment_variables
 
+from dotenv import load_dotenv
 from telegram.ext import Updater
 
+from bot_components.db.db_manager import Database
+from bot_components.db.firebase_manager import FirebaseStorage
 from bot_components.foto import Foto
 from bot_components.gestore import add_message_handlers
 from bot_components.insulti import Insulti
 from bot_components.menu import init_menu
 from bot_components.risposte import Risposte
 
-BOT_TOKEN = "5284256332:AAHv1djfMG6QQTobd-H_jUDpmsjvMgewpNM"
-BOT_TOKEN_LOCAL = "5147856404:AAHdp2lv0mT_R2oF7BqWgANEGpSQaHiSvsI"
-
 
 def main():
+    load_dotenv()
     SERVER_PORT = get_server_port()
     is_server = 'ON_HEROKU' in environment_variables
 
+    check_environment_variables(True)
+
     logging.basicConfig(level=logging.WARNING)
+
+    BOT_TOKEN = environment_variables.get("BOT_TOKEN")
+    BOT_TOKEN_LOCAL = environment_variables.get("BOT_TOKEN_LOCAL")
 
     updater = get_updater(BOT_TOKEN) if is_server else get_updater(BOT_TOKEN_LOCAL)
     dispatcher = updater.dispatcher
 
+    setup_db()
     init_bot_components(dispatcher)
 
     if is_server:
@@ -42,6 +49,28 @@ def get_server_port():
     return int(environment_variables.get('PORT', 8443))
 
 
+def check_environment_variables(is_server):
+    required_envs = ("FB_PROJECT_ID",
+                     "FB_CREDENTIALS_KEY_ID",
+                     "FB_CREDENTIALS_PRIVATE_KEY",
+                     "FB_CLIENT_EMAIL",
+                     "FB_CLIENT_ID",
+                     "FB_BUCKET_NAME",
+                     "BOT_TOKEN" if is_server else "BOT_TOKEN_LOCAL")
+    error = False
+    for env in required_envs:
+        if env not in environment_variables:
+            logging.critical(f"Missing required environment variable: {env}")
+            error = True
+    if error:
+        exit(ExitCode.MISSING_REQUIRED_ENV)
+
+
+def setup_db():
+    Database.set_db_type(FirebaseStorage)
+    FirebaseStorage.init()
+
+
 def init_bot_components(dispatcher):
     logging.debug("Init components...")
     init_menu(dispatcher)
@@ -54,6 +83,12 @@ def init_bot_components(dispatcher):
 
 def get_updater(token: str) -> Updater:
     return Updater(token=token, use_context=True)
+
+
+class ExitCode:
+    OK = 0
+    UNKNOWN_ERROR = 1
+    MISSING_REQUIRED_ENV = 2
 
 
 if __name__ == '__main__':

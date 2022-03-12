@@ -1,24 +1,17 @@
-import json
-import logging
-
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Update
 from telegram.ext import CallbackQueryHandler, CallbackContext, Dispatcher
 
-from utils.os_utils import get_absolute_path
+from bot_components.db.db_manager import Database
 
 
 def init_tris(dispatcher: Dispatcher):
-    load_diz_persone()
+    Database.get().register_for_config_changes("nicknames", load_diz_persone)
     dispatcher.add_handler(CallbackQueryHandler(Tris.show_tris, pattern=r"tris-callback", run_async=True))
     dispatcher.add_handler(CallbackQueryHandler(Tris.tris_callback, pattern=r"tris:[0-9]", run_async=True))
 
 
 def load_diz_persone():
-    try:
-        with open(get_absolute_path("/resources/text_files/id_persone.json"), "r") as file:
-            Tris.diz_persone = json.load(file)
-    except OSError as e:
-        logging.warning(f"Errore nell'apertura di 'id_persone.json': {e}")
+    Tris.diz_persone = Database.get().get_nicknames()
 
 
 def get_coordinate(update: Update):
