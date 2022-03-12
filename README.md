@@ -22,7 +22,7 @@ firebase**](https://console.firebase.google.com/u/0/project/botvalodatabase). Se
 chiedi a [@EdoTM](https://github.com/EdoTM) o a [@giumanuz](https://github.com/giumanuz) di fornirtelo. Il bot usa
 principalmente due servizi di firebase:
 
-+ Il[firestore database](https://console.firebase.google.com/u/0/project/botvalodatabase/firestore/), usato per i file
++ Il [firestore database](https://console.firebase.google.com/u/0/project/botvalodatabase/firestore/), usato per i file
   di configurazione. **Non modificare file se non sai quello che stai facendo.** Prima di modificare un file, nota come
   è strutturato e modificalo seguendo quella struttura, altrimenti il bot potrebbe non funzionare correttamente.
 
