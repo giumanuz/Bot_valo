@@ -17,7 +17,7 @@ davanti, ma deve essere rinominato in "**.env**" per funzionare.
 
 Per configurare il bot, vai nella [**console di
 firebase**](https://console.firebase.google.com/u/0/project/botvalodatabase). Se non hai
-accesso a firebase come editor, chiedi a @EdoTM o a @giuliomanuz di fornirtelo. Il bot usa
+accesso a firebase come editor, chiedi a [@EdoTM](https://github.com/EdoTM) o a [@giumanuz](https://github.com/giumanuz) di fornirtelo. Il bot usa
 principalmente due servizi di firebase:
 
 + Il [firestore database](https://console.firebase.google.com/u/0/project/botvalodatabase/firestore/),
@@ -30,4 +30,4 @@ quella struttura, altrimenti il bot potrebbe non funzionare correttamente.
   dove `categoria` è una delle sottocartelle. **Attenzione:** il nome delle categorie
   (quindi, delle sottocartelle) deve corrispondere alle rispettive voci dentro il file
   `keyword_foto` nel firestore database. Se vuoi aggiungere categorie e non sai come fare,
-  chiedi a @EdoTM.
+  chiedi a [@EdoTM](https://github.com/EdoTM).
