@@ -10,6 +10,8 @@ from telegram.ext import CallbackContext, ConversationHandler, CommandHandler, F
 
 from utils.os_utils import get_absolute_path
 
+from bot_components.menu import Menu
+
 
 def remove_file_from_top_directory(filename: str):
     os.remove(get_absolute_path(f"/{filename}"))
@@ -225,5 +227,5 @@ def init_prenotazioni(dispatcher: Dispatcher):
             6: [MessageHandler(Filters.text & ~Filters.command, Prenotazione.send_pdf)]
         },
         fallbacks=[CommandHandler("quit", Prenotazione.annulla_prenotazione)]
-
     ))
+    Menu.register_button("Prenotazione", "prenotazione")
