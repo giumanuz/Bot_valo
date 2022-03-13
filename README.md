@@ -1,8 +1,7 @@
-Main
-branch: [![BotValo](https://github.com/giumanuz/Bot_valo/actions/workflows/python-app.yml/badge.svg?branch=main)](https://github.com/giumanuz/Bot_valo/actions/workflows/python-app.yml)
-
-Development
-branch: [![BotValo](https://github.com/giumanuz/Bot_valo/actions/workflows/python-app.yml/badge.svg?branch=dev)](https://github.com/giumanuz/Bot_valo/actions/workflows/python-app.yml)
+| Branch | Status |
+|-------|-------|
+| main | [![BotValo](https://github.com/giumanuz/Bot_valo/actions/workflows/python-app.yml/badge.svg?branch=main)](https://github.com/giumanuz/Bot_valo/actions/workflows/python-app.yml) |
+| dev | [![BotValo](https://github.com/giumanuz/Bot_valo/actions/workflows/python-app.yml/badge.svg?branch=dev)](https://github.com/giumanuz/Bot_valo/actions/workflows/python-app.yml) |
 
 ## Setup
 
