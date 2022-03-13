@@ -6,11 +6,11 @@ class Menu:
     __BUTTONS_PER_ROW = 2
     __MENU_TEXT = "〰〰〰〰 MENU 〰〰〰〰"
 
-    buttons_list = []
+    buttons_list: list[list[InlineKeyboardButton]] = []
 
     @classmethod
     def init(cls, dispatcher: Dispatcher):
-        dispatcher.add_handler(CommandHandler("Menu", Menu.show, run_async=True))
+        dispatcher.add_handler(CommandHandler("menu", Menu.show, run_async=True))
 
     @classmethod
     def show(cls, update: Update, _=None):
@@ -31,4 +31,3 @@ class Menu:
     @classmethod
     def _list_is_full(cls):
         return len(cls.buttons_list[-1]) == cls.__BUTTONS_PER_ROW
-
