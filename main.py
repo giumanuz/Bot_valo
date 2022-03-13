@@ -18,7 +18,7 @@ def main():
     SERVER_PORT = get_server_port()
     is_server = 'ON_HEROKU' in environment_variables
 
-    check_environment_variables(True)
+    check_environment_variables(is_server)
 
     logging.basicConfig(level=logging.WARNING)
 
