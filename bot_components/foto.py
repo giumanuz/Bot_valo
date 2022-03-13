@@ -1,30 +1,30 @@
-import logging
-import random
 import re
 import threading
-from os import listdir
 
 from telegram import Chat
 
-from utils.os_utils import get_json_data_from_file, get_absolute_path, get_current_local_datetime, \
-    get_current_weekday_name
+from bot_components.db.db_manager import Database
+from utils.os_utils import get_current_local_datetime, get_current_weekday_name
 from utils.regex_parser import WordParser
 
 
 class Foto:
     keywords: dict[str, list[str]] = {}
     blacklisted_hours: dict[str, list[int]] = {}
-    chats_removal_seconds: dict[int, float] = {}
-    __DEFAULT_REMOVAL_SECONDS = 5
 
     @classmethod
     def init(cls):
-        cls.keywords = get_json_data_from_file("keyword_foto.json")
-        cls._init_blacklist()
+        db = Database.get()
+        db.register_for_config_changes("keyword_foto", cls._init_keywords)
+        db.register_for_config_changes("schedule_blacklist", cls._init_blacklist)
+
+    @classmethod
+    def _init_keywords(cls):
+        cls.keywords = Database.get().get_keyword_foto()
 
     @classmethod
     def _init_blacklist(cls):
-        cls.blacklisted_hours = get_json_data_from_file("schedule_blacklist.json")
+        cls.blacklisted_hours = Database.get().get_schedule_blacklist()
 
     @classmethod
     def _empty_blacklist(cls):
@@ -41,29 +41,24 @@ class Foto:
             return
         for category, lst in cls.keywords.items():
             if any(WordParser.contains(s, text) for s in lst):
-                res = chat.send_photo(cls.__get_random_photo(category))
+                random_photo = cls.__get_random_photo(category)
+                res = chat.send_photo(random_photo)
                 if res:
-                    seconds = cls.chats_removal_seconds.get(chat.id, cls.__DEFAULT_REMOVAL_SECONDS)
+                    seconds = Database.get().get_chat_removal_seconds(chat.id)
                     threading.Timer(seconds, lambda: res.delete() if res else None).start()
 
     @classmethod
     def __get_random_photo(cls, category: str) -> bytes:
-        directory = get_absolute_path(f"/resources/photos/{category}")
-        random_photo = f"{directory}/{random.choice(listdir(directory))}"
-        try:
-            with open(random_photo, "rb") as photo:
-                return photo.read()
-        except FileNotFoundError:
-            logging.warning(f"Photo '{random_photo}' not found!")
+        return Database.get().get_random_photo(category)
 
     @classmethod
     def set_chat_removal_timer(cls, text, chat):
         try:
             seconds = re.search(r"\d+(.\d+)?", text).group(0)
-            cls.chats_removal_seconds[chat.id] = float(seconds)
+            Database.get().set_chat_removal_seconds(chat.id, float(seconds))
             chat.send_message(f"Le foto verranno eliminate dopo {seconds} secondi")
         except (TypeError, AttributeError):
-            current_removal_seconds = cls.chats_removal_seconds.get(chat.id, 5)
+            current_removal_seconds = Database.get().get_chat_removal_seconds(chat.id)
             chat.send_message(f'Le foto sono eliminate dopo {current_removal_seconds} secondi. '
                               f'Per cambiarlo, scrivi "botvalo timer xx" dove xx sono i secondi.')
 

@@ -1,44 +1,34 @@
-[![BotValo](https://github.com/giumanuz/Bot_valo/actions/workflows/python-app.yml/badge.svg?branch=main)](https://github.com/giumanuz/Bot_valo/actions/workflows/python-app.yml)
+Main
+branch: [![BotValo](https://github.com/giumanuz/Bot_valo/actions/workflows/python-app.yml/badge.svg?branch=main)](https://github.com/giumanuz/Bot_valo/actions/workflows/python-app.yml)
 
-## Risposte
+Development
+branch: [![BotValo](https://github.com/giumanuz/Bot_valo/actions/workflows/python-app.yml/badge.svg?branch=dev)](https://github.com/giumanuz/Bot_valo/actions/workflows/python-app.yml)
 
-Vediamo come si possono aggiungere e/o modificare le risposte del bot.
+## Setup
 
-### Sintassi delle risposte
-Le associazioni trigger-risposta stanno tutte nel file `risposte.json` dentro `resources/text_files`.
-La sintassi di questo file è la seguente:
-```json
-{
-   "trigger1": "risposta1",
-   "trigger2": ["possibile risposta", "altra possibile risposta"],
-   "trigger3": "ALT::trigger1"
-}
-```
-In questo esempio, se qualcuno scrive in chat la parola "trigger1", il bot risponderà con "risposta1".
-Abbastanza semplice, no?
+Questo readme è temporaneo, verranno scritte delle pagine wiki dettagliate appena sarà disponibile.
 
-Se, invece, specifichi una *lista* di stringhe, il bot risponderà con una delle
-risposte in modo casuale. Ovvero, se si scrive in chat "trigger2", il bot risponderà con una delle due
-risposte che gli sono state fornite: il 50% delle volte manderà "possibile risposta", l'altro 50% manderà
-"altra possibile risposta".
+Per setuppare il bot dopo il merge `edotm/firebase-integration` è necessario avere un file `.env` con dentro tutte le
+informazioni necessarie per far partire il bot. Guarda, per riferimento, il file `.env_sample`.
 
-Infine, per specificare un'**alternativa** a un possibile trigger, basta scrivere nella risposta `ALT::`
-seguito dal trigger di cui è un'alternativa. In questo esempio, se qualcuno scrive in chat "trigger3",
-il bot risponderà con "risposta1". Ovvero, "trigger3" e "trigger1" sono alternative alla stessa risposta.
-Funziona anche se è l'alternativa di un insieme di risposte, ovvero era possibile scrivere
-`"trigger3": "ALT::trigger2"`, in questo modo "trigger3" e "*trigger2*" diventano alternative.
+Il file `.env` che va usato per il testing si trova sul server discord comune, nella chat `#botvalo-shit`. **
+Importante:** discord lo fa scaricare come "env", senza il punto davanti, ma deve essere rinominato in "**.env**" per
+funzionare.
 
-> **Nota:** `ALT::` funziona solamente se come alternativa si specifica un trigger che è stato già definito.
-> Non funzionerà se punta ad un'altra alternativa.
+## Configurazione del bot
 
-### Aggiungere o rimuovere risposte
+Per configurare il bot, vai nella [**console di
+firebase**](https://console.firebase.google.com/u/0/project/botvalodatabase). Se non hai accesso a firebase come editor,
+chiedi a [@EdoTM](https://github.com/EdoTM) o a [@giumanuz](https://github.com/giumanuz) di fornirtelo. Il bot usa
+principalmente due servizi di firebase:
 
-Per aggiungerne di nuove, basta modificare il file `risposte.json` e aggiungere risposte seguendo la
-sintassi specificata. Per rimuoverle, basta cancellare la rispettiva riga. 
++ Il [firestore database](https://console.firebase.google.com/u/0/project/botvalodatabase/firestore/), usato per i file
+  di configurazione. **Non modificare file se non sai quello che stai facendo.** Prima di modificare un file, nota come
+  è strutturato e modificalo seguendo quella struttura, altrimenti il bot potrebbe non funzionare correttamente.
 
-> **Attenzione:** L'ultimo elemento del json **non deve avere la
-virgola finale**.
-> 
-> **Nota:** Quando si elimina una risposta, bisogna stare attenti a **eliminare anche tutte le
-> alternative**. Nel caso in cui un'alternativa manca, il bot manda il messaggio letterale
-> (ovvero, compreso di `ALT::`) e viene loggato un warning nella console.
++ Lo [storage](https://console.firebase.google.com/u/0/project/botvalodatabase/storage), che viene usato per le foto. Si
+  trovano tutte dentro la cartella `images/categoria/`, dove `categoria` è una delle sottocartelle. **Attenzione:** il
+  nome delle categorie
+  (quindi, delle sottocartelle) deve corrispondere alle rispettive voci dentro il file
+  `keyword_foto` nel firestore database. Se vuoi aggiungere categorie e non sai come fare, chiedi
+  a [@EdoTM](https://github.com/EdoTM).

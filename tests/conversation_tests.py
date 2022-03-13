@@ -1,16 +1,16 @@
 import pytest
 
 import bot_components.gestore as gestore
+from bot_components.db.db_manager import Database
 from bot_components.foto import Foto
 from bot_components.insulti import Insulti
 from bot_components.menu import show_menu
 from bot_components.risposte import Risposte
-
 from tests.framework.mockbot import MockBot
 from tests.framework.mockcontext import MockContext
+from tests.framework.mockdatabase import MockDatabase
 from tests.framework.mockdispatcher import MockDispatcher
 from tests.framework.mockupdate import MockUpdate
-
 # noinspection PyUnresolvedReferences
 from tests.test_utilities.common_fixtures import *
 from tests.test_utilities.common_tests_utils import *
@@ -18,14 +18,20 @@ from tests.test_utilities.common_tests_utils import *
 bot = MockBot()
 dispatcher = MockDispatcher(bot)
 context = MockContext(dispatcher)
+db: MockDatabase = None
 
 
 @pytest.fixture(scope="module", autouse=True)
 def module_setup():
+    Database.set_db_type(MockDatabase)
+    local_db: MockDatabase = Database.get()
+    local_db.load_default_values()
     Risposte.init()
     Insulti.init()
     Foto.init()
     SET_COMMON_BOT(bot)
+    global db
+    db = local_db
 
 
 def test_Insulti_ifNonTriggerMessage_ShouldNotReply(simple_setup):
@@ -67,6 +73,11 @@ def test_Foto_ifTextContainsTriggerWithPunctuation_ShouldSendPhoto(empty_blackli
     assert has_valid_photo(bot.result, 1)
 
 
+def test_Foto_ifTextContainsNonExplicitTrigger_ShouldNotSendPhoto(empty_blacklist):
+    send_fake_message_to(Foto, "testmazzatest")
+    assert len(bot.result) == 0
+
+
 # noinspection PyTypeChecker
 def test_Risposte_ifTextContainsTriggerWithPunctuation_ShouldReply(simple_setup):
     update1 = MockUpdate.from_message("test, grazie, test")
@@ -79,11 +90,6 @@ def test_Risposte_ifTextContainsTriggerWithPunctuation_ShouldReply(simple_setup)
     gestore.inoltra_messaggio(update3)
     send_fake_message_to(Foto, "test...grazie! Test.")
     assert len(bot.result) == 3
-
-
-def test_Risposte_ifTextContainsNonExplicitTrigger_ShouldNotSendPhoto(simple_setup):
-    send_fake_message_to(Foto, "testmazzatest")
-    assert len(bot.result) == 0
 
 
 def test_Risposte_ifTriggerWordSent_ShouldReply(simple_setup):
@@ -103,10 +109,9 @@ def test_Risposte_ifTextContainsExplicitTrigger_ShouldReply(simple_setup):
 
 def test_Risposte_alternativeTextValue(simple_setup):
     send_fake_message_to(Risposte, "ricorsione")
-    response = bot.result[0]['text']
     send_fake_message_to(Risposte, "ricorsivo")
     assert len(bot.result) == 2
-    assert response == bot.result[1]['text']
+    assert bot.result[0]['text'] == bot.result[1]['text']
 
 
 # noinspection PyTypeChecker
@@ -143,13 +148,25 @@ def test_Gestore_ifMessageIsTimerCommand_ShouldChangeChatPhotoRemovalTimer(simpl
     update1 = MockUpdate.from_message("botvalo timer 20")
     update1._chat = TEST_CHAT
     gestore.inoltra_messaggio(update1)
-    assert TEST_CHAT_ID in Foto.chats_removal_seconds
-    assert Foto.chats_removal_seconds[TEST_CHAT_ID] == 20
+    assert str(TEST_CHAT_ID) in db.removal_seconds
+    assert db.get_chat_removal_seconds(TEST_CHAT_ID) == 20
 
     update2 = MockUpdate.from_message("botvalo timer 5.7")
     update2._chat = TEST_CHAT
     gestore.inoltra_messaggio(update2)
-    assert Foto.chats_removal_seconds[TEST_CHAT_ID] == 5.7
+    assert db.get_chat_removal_seconds(TEST_CHAT_ID) == 5.7
+
+
+def test_Foto_onTimerCommandWithoutParameters_ShouldNotChangeChatPhotoRemovalTimer(simple_setup):
+    TEST_CHAT_ID = -234410
+    db.set_chat_removal_seconds(TEST_CHAT_ID, 1752)
+
+    update = MockUpdate.from_message("botvalo timer")
+    update._chat = MockChat(TEST_CHAT_ID)
+    gestore.inoltra_messaggio(update)
+    assert db.get_chat_removal_seconds(TEST_CHAT_ID) == 1752
+    assert len(bot.result) == 1
+    assert "1752" in bot.result[0]['text']
 
 
 # noinspection PyTypeChecker
