@@ -61,6 +61,11 @@ class FirebaseStorage(Database):
         lista_insulti = dict_insulti['insulti']
         return lista_insulti
 
+    def get_dict_alias_chat(self) -> dict[str, str]:
+        doc_alias = self._get_config_doc("alias_chat")
+        dict_alias = doc_alias.get().to_dict()
+        return dict_alias
+
     def get_keyword_foto(self) -> dict[str, list[str]]:
         return self._get_config_doc_as_dict("keyword_foto")
 
@@ -91,3 +96,7 @@ class FirebaseStorage(Database):
         chat_id = str(chat_id)
         doc = self._get_config_doc("chat_removal_seconds")
         doc.update({chat_id: seconds})
+
+    def set_chat_alias(self, name: str, chat_id: int):
+        doc = self._get_config_doc("alias_chat")
+        doc.update({name: chat_id})
