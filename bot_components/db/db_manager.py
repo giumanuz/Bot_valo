@@ -58,3 +58,7 @@ class Database(ABSTRACT_CLASS):
     @abstractmethod
     def set_chat_alias(self, name: str, chat_id: int):
         ...
+
+    @abstractmethod
+    def delete_chat_alias(self, name: str):
+        ...

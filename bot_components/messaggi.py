@@ -1,19 +1,24 @@
-from telegram import Chat, Update
+from telegram import Chat
 import re
 
 from telegram.ext import CallbackContext
 
 from bot_components.db.db_manager import Database
 
-
 class Messaggi:
     @classmethod
     def handle_message(cls, text: str, chat: Chat, context: CallbackContext):
-        match = re.search(r"^botvalo registra chat ([a-z0-9_-]+)", text)
+        match = re.search(r"^botvalo (registra|rimuovi) chat ([a-z0-9_-]+)", text)
         if match is not None:
-            chat_name = match.groups()[0]
+            comando = match.groups()[0]
+            chat_name = match.groups()[1]
             chat_id = chat.id
-            Database.get().set_chat_alias(chat_name, chat_id)
+            if comando == "registra":
+                Database.get().set_chat_alias(chat_name, chat_id)
+                chat.send_message("Chat registrata correttamente")
+            elif comando == "rimuovi":
+                Database.get().delete_chat_alias(chat_name)
+                chat.send_message("Chat rimossa correttamente")
             return
 
         match = re.search(r"^botvalo scrivi a ([a-z0-9_-]+) (.+)$", text)
