@@ -5,6 +5,8 @@ from typing import Optional
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, Message, Chat
 from telegram.ext import Dispatcher, CallbackQueryHandler, CallbackContext, Job
 
+from bot_components.menu import Menu
+
 
 class CheckableQueue(Queue):
     def __contains__(self, item):
@@ -221,3 +223,4 @@ def init_snake(dispatcher: Dispatcher):
     dispatcher.add_handler(CallbackQueryHandler(
         Snake.on_button_click, pattern="snake-[0123]", run_async=True
     ))
+    Menu.register_button("Snake", "snake-callback")

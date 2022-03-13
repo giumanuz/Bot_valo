@@ -4,7 +4,7 @@ import bot_components.gestore as gestore
 from bot_components.db.db_manager import Database
 from bot_components.foto import Foto
 from bot_components.insulti import Insulti
-from bot_components.menu import show_menu
+from bot_components.menu import Menu
 from bot_components.risposte import Risposte
 from tests.framework.mockbot import MockBot
 from tests.framework.mockcontext import MockContext
@@ -183,7 +183,7 @@ def test_ifMoreCategoriesAreTriggered_ShouldSendMultipleMessages(empty_blacklist
 def test_onMenuCommand_ShouldSendMenu(simple_setup):
     from telegram.inline.inlinekeyboardmarkup import InlineKeyboardMarkup
     update = MockUpdate.empty()
-    show_menu(update)
+    Menu.show(update)
     res = bot.result
     assert len(res) == 1
     assert 'reply_markup' in res[0]

@@ -2,12 +2,14 @@ from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Update
 from telegram.ext import CallbackQueryHandler, CallbackContext, Dispatcher
 
 from bot_components.db.db_manager import Database
+from bot_components.menu import Menu
 
 
 def init_tris(dispatcher: Dispatcher):
     Database.get().register_for_config_changes("nicknames", load_diz_persone)
     dispatcher.add_handler(CallbackQueryHandler(Tris.show_tris, pattern=r"tris-callback", run_async=True))
     dispatcher.add_handler(CallbackQueryHandler(Tris.tris_callback, pattern=r"tris:[0-9]", run_async=True))
+    Menu.register_button("Tris", "tris-callback")
 
 
 def load_diz_persone():
