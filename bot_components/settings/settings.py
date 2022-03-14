@@ -9,18 +9,22 @@ from utils.lib_utils import FlowMatrix
 class ChatSettings:
     __BUTTONS_PER_ROW = 2
     settings_matrix = FlowMatrix(row_length=__BUTTONS_PER_ROW)
-    dispatcher: Dispatcher
+    dispatcher: Dispatcher = None
 
     @classmethod
     def init(cls, dispatcher: Dispatcher):
         cls.dispatcher = dispatcher
-        dispatcher.add_handler(CallbackQueryHandler(
+        cls._add_callback_handler()
+        cls._init_settings()
+        Menu.register_button("🔧Impostazioni🔧", "chat-settings")
+
+    @classmethod
+    def _add_callback_handler(cls):
+        cls.dispatcher.add_handler(CallbackQueryHandler(
             cls.show_settings,
             pattern="^chat-settings$",
             run_async=True
         ))
-        Menu.register_button("🔧Impostazioni🔧", "chat-settings")
-        cls._init_settings()
 
     @classmethod
     def _init_settings(cls):
