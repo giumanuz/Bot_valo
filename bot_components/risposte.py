@@ -8,7 +8,7 @@ from utils.regex_parser import WordParser
 
 
 class Risposte:
-    dict_risposte = None
+    dict_risposte = {}
     __ALTERNATIVE_WORD = "ALT::"
 
     @classmethod
