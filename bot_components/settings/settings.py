@@ -7,7 +7,7 @@ from utils.lib_utils import FlowMatrix
 
 
 class ChatSettings:
-    __BUTTONS_PER_ROW = 2
+    __BUTTONS_PER_ROW = 1
     settings_matrix = FlowMatrix(row_length=__BUTTONS_PER_ROW)
     dispatcher: Dispatcher = None
 
@@ -28,10 +28,12 @@ class ChatSettings:
 
     @classmethod
     def _init_settings(cls):
-        cls.__add_setting(PhotoRemovalSetting)
+        cls.add_setting(PhotoRemovalSetting)
+        cls.add_setting(PhotoRemovalSetting)
+        cls.add_setting(PhotoRemovalSetting)
 
     @classmethod
-    def __add_setting(cls, setting):
+    def add_setting(cls, setting):
         cls.dispatcher.add_handler(CallbackQueryHandler(
             setting.callback,
             pattern=f"^{setting.id}$"

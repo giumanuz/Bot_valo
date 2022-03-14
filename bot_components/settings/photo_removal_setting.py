@@ -7,7 +7,7 @@ from utils.lib_utils import FlowMatrix
 
 
 class PhotoRemovalSetting(MenuSetting):
-    name = "Timer foto"
+    name = "Timer eliminazione foto"
     id = "photo-removal-setting"
 
     presets = {
