@@ -10,8 +10,8 @@ class Messaggi:
     def handle_message(cls, text: str, chat: Chat, context: CallbackContext):
         match = re.search(r"^botvalo (registra|rimuovi) chat ([a-z0-9_-]+)", text)
         if match is not None:
-            comando = match.groups()[0]
-            chat_name = match.groups()[1]
+            comando = match.group(0)
+            chat_name = match.group(1)
             chat_id = chat.id
             if comando == "registra":
                 Database.get().set_chat_alias(chat_name, chat_id)
@@ -23,8 +23,8 @@ class Messaggi:
 
         match = re.search(r"^botvalo scrivi a ([a-z0-9_-]+) (.+)$", text)
         if match is not None:
-            chat_name = match.groups()[0]
-            message = match.groups()[1]
+            chat_name = match.group(0)
+            message = match.group(1)
             chat_id = Database.get().get_dict_alias_chat().get(chat_name, None)
             if chat_id is None:
                 chat.send_message(f"Non esiste nessuna chat {chat_name}")
