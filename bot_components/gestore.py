@@ -1,8 +1,9 @@
 from telegram import Update
-from telegram.ext import Dispatcher, MessageHandler, Filters
+from telegram.ext import Dispatcher, MessageHandler, Filters, CallbackContext
 
 from bot_components.foto import Foto
 from bot_components.insulti import Insulti
+from bot_components.messaggi import Messaggi
 from bot_components.risposte import Risposte
 from utils.telegram_utils import get_effective_text
 
@@ -16,7 +17,7 @@ def add_message_handlers(dispatcher: Dispatcher):
     )
 
 
-def inoltra_messaggio(update: Update, _=None):
+def inoltra_messaggio(update: Update, context: CallbackContext = None):
     if has_invalid_message(update):
         return
     text, chat = get_effective_text(update), update.effective_chat
@@ -26,6 +27,7 @@ def inoltra_messaggio(update: Update, _=None):
     Risposte.handle_message(text, chat)
     Insulti.handle_message(text, chat)
     Foto.handle_message(text, chat)
+    Messaggi.handle_message(text, chat, context)
 
 
 def has_invalid_message(update):
