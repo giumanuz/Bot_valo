@@ -20,9 +20,6 @@ def inoltra_messaggio(update: Update, _=None):
     if has_invalid_message(update):
         return
     text, chat = get_effective_text(update), update.effective_chat
-    if "botvalo timer" in text:
-        Foto.set_chat_removal_timer(text, chat)
-        return
     Risposte.handle_message(text, chat)
     Insulti.handle_message(text, chat)
     Foto.handle_message(text, chat)
