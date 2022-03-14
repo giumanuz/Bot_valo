@@ -87,8 +87,8 @@ class FirebaseStorage(Database):
 
     def get_chat_removal_seconds(self, chat_id: int, default=5) -> dict:
         chat_id = str(chat_id)
-        doc = self._get_config_doc("chat_removal_seconds")
-        return doc.get().to_dict().get(chat_id, default)
+        doc_data = self._get_config_doc_as_dict("chat_removal_seconds")
+        return doc_data.get(chat_id, default)
 
     def set_chat_removal_seconds(self, chat_id: int, seconds: float):
         chat_id = str(chat_id)
