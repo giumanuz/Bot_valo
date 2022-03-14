@@ -53,7 +53,10 @@ class FirebaseStorage(Database):
     def _get_config_doc_as_dict(self, document: str):
         configs = self._firestore_client.collection("configs")
         document = configs.document(document)
-        return document.get().to_dict()
+        doc = document.get()
+        if not doc.exists:
+            raise FileNotFoundError()
+        return doc.to_dict()
 
     def get_lista_insulti(self) -> list[str]:
         doc_insulti = self._get_config_doc("insulti")

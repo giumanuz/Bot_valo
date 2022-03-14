@@ -1,4 +1,3 @@
-import re
 import threading
 
 from telegram import Chat
@@ -11,6 +10,7 @@ from utils.regex_parser import WordParser
 class Foto:
     keywords: dict[str, list[str]] = {}
     blacklisted_hours: dict[str, list[int]] = {}
+    SECONDS_INFINITE = 99999
 
     @classmethod
     def init(cls):
@@ -43,24 +43,23 @@ class Foto:
             if any(WordParser.contains(s, text) for s in lst):
                 random_photo = cls.__get_random_photo(category)
                 res = chat.send_photo(random_photo)
-                if res:
-                    seconds = Database.get().get_chat_removal_seconds(chat.id)
-                    threading.Timer(seconds, lambda: res.delete() if res else None).start()
+                if not res:
+                    return
+                seconds = Database.get().get_chat_removal_seconds(chat.id)
+                if seconds == cls.SECONDS_INFINITE:
+                    return
+                threading.Timer(seconds, lambda: res.delete() if res else None).start()
 
     @classmethod
     def __get_random_photo(cls, category: str) -> bytes:
         return Database.get().get_random_photo(category)
 
     @classmethod
-    def set_chat_removal_timer(cls, text, chat):
+    def set_chat_removal_timer(cls, chat, seconds):
         try:
-            seconds = re.search(r"\d+(.\d+)?", text).group(0)
             Database.get().set_chat_removal_seconds(chat.id, float(seconds))
-            chat.send_message(f"Le foto verranno eliminate dopo {seconds} secondi")
         except (TypeError, AttributeError):
-            current_removal_seconds = Database.get().get_chat_removal_seconds(chat.id)
-            chat.send_message(f'Le foto sono eliminate dopo {current_removal_seconds} secondi. '
-                              f'Per cambiarlo, scrivi "botvalo timer xx" dove xx sono i secondi.')
+            raise AttributeError()
 
     @classmethod
     def hour_in_blacklist(cls) -> bool:
