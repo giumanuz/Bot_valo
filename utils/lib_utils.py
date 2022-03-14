@@ -1,5 +1,7 @@
 class FlowMatrix:
     def __init__(self, row_length: int):
+        if row_length <= 0:
+            raise AttributeError("Row length must be >=1")
         self._row_width = row_length
         self.__list: list[list] = []
 
@@ -20,9 +22,6 @@ class FlowMatrix:
 
     def _row_is_full(self):
         return len(self.__list[-1]) == self._row_width
-
-    def __len__(self):
-        return len(self.__list)
 
     @classmethod
     def from_list(cls, ls: list, row_length: int):

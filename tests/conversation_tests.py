@@ -141,34 +141,6 @@ def test_Gestore_ifMessageEdited_ShouldNotReply(simple_setup):
     assert len(bot.result) == 0
 
 
-def test_Gestore_ifMessageIsTimerCommand_ShouldChangeChatPhotoRemovalTimer(simple_setup):
-    TEST_CHAT_ID = -234410
-    TEST_CHAT = MockChat(TEST_CHAT_ID)
-
-    update1 = MockUpdate.from_message("botvalo timer 20")
-    update1._chat = TEST_CHAT
-    gestore.inoltra_messaggio(update1)
-    assert str(TEST_CHAT_ID) in db.removal_seconds
-    assert db.get_chat_removal_seconds(TEST_CHAT_ID) == 20
-
-    update2 = MockUpdate.from_message("botvalo timer 5.7")
-    update2._chat = TEST_CHAT
-    gestore.inoltra_messaggio(update2)
-    assert db.get_chat_removal_seconds(TEST_CHAT_ID) == 5.7
-
-
-def test_Foto_onTimerCommandWithoutParameters_ShouldNotChangeChatPhotoRemovalTimer(simple_setup):
-    TEST_CHAT_ID = -234410
-    db.set_chat_removal_seconds(TEST_CHAT_ID, 1752)
-
-    update = MockUpdate.from_message("botvalo timer")
-    update._chat = MockChat(TEST_CHAT_ID)
-    gestore.inoltra_messaggio(update)
-    assert db.get_chat_removal_seconds(TEST_CHAT_ID) == 1752
-    assert len(bot.result) == 1
-    assert "1752" in bot.result[0]['text']
-
-
 # noinspection PyTypeChecker
 def test_ifMoreCategoriesAreTriggered_ShouldSendMultipleMessages(empty_blacklist):
     update = MockUpdate.from_message("grazie insulta Test")
