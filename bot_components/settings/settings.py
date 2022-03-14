@@ -2,6 +2,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Dispatcher, CallbackQueryHandler
 
 from bot_components.menu import Menu
+from bot_components.settings.menu_setting import MenuSetting
 from bot_components.settings.photo_removal_setting import PhotoRemovalSetting
 from utils.lib_utils import FlowMatrix
 
@@ -28,15 +29,15 @@ class ChatSettings:
 
     @classmethod
     def _init_settings(cls):
-        cls.add_setting(PhotoRemovalSetting)
+        cls.add_setting(PhotoRemovalSetting(cls.dispatcher))
 
     @classmethod
-    def add_setting(cls, setting):
+    def add_setting(cls, setting: MenuSetting):
         cls.dispatcher.add_handler(CallbackQueryHandler(
             setting.callback,
             pattern=f"^{setting.id}$"
         ))
-        setting.register(cls.dispatcher)
+        setting.register()
         setting_button = InlineKeyboardButton(setting.name, callback_data=setting.id)
         cls.settings_matrix.append(setting_button)
 

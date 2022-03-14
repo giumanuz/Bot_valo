@@ -7,53 +7,55 @@ from utils.lib_utils import FlowMatrix
 
 
 class PhotoRemovalSetting(MenuSetting):
-    name = "Timer eliminazione foto"
-    id = "photo-removal-setting"
+
+    PHOTO_WILL_NOT_BE_DELETED = "Le foto non verranno eliminate... contento te 🤷"
+    PHOTO_WILL_BE_DELETED_AFTER = "Le foto verranno eliminate dopo {}"
+    TIMER_CHANGE_ERROR = "C'è stato un errore nella modifica del timer😥 Riprova più tardi😅"
 
     presets = {
         2: "2s", 5: "5s", 10: "10s",
         30: "30s", 60: "1min", 300: "5min",
         1800: "30min", 3600: "1h", Foto.SECONDS_INFINITE: "Mai"
     }
-    preset_matrix: list[list[InlineKeyboardButton]] = None
     __MATRIX_ROW_LENGTH = 3
 
-    PHOTO_WILL_NOT_BE_DELETED = "Le foto non verranno eliminate... contento te 🤷"
-    PHOTO_WILL_BE_DELETED_AFTER = "Le foto verranno eliminate dopo {}"
-    TIMER_CHANGE_ERROR = "C'è stato un errore nella modifica del timer😥 Riprova più tardi😅"
+    @property
+    def name(self):
+        return "Timer eliminazione foto"
 
-    @classmethod
-    def init(cls, dispatcher: Dispatcher):
-        matrix = FlowMatrix(row_length=cls.__MATRIX_ROW_LENGTH)
-        cls._add_callback_handler(dispatcher)
-        cls._init_preset_matrix(matrix)
+    @property
+    def id(self):
+        return "photo-removal-setting"
 
-    @classmethod
-    def _init_preset_matrix(cls, matrix):
-        for seconds, name in cls.presets.items():
+    def __init__(self, dispatcher: Dispatcher):
+        self.preset_matrix: list[list[InlineKeyboardButton]] = None
+        self.dispatcher = dispatcher
+        self._add_callback_handler()
+        self._init_preset_matrix()
+
+    def _init_preset_matrix(self):
+        matrix = FlowMatrix(row_length=self.__MATRIX_ROW_LENGTH)
+        for seconds, name in self.presets.items():
             button = InlineKeyboardButton(
                 name,
-                callback_data=f"{cls.name}-{seconds}"
+                callback_data=f"{self.name}-{seconds}"
             )
             matrix.append(button)
-        cls.preset_matrix = InlineKeyboardMarkup(matrix.list)
+        self.preset_matrix = InlineKeyboardMarkup(matrix.list)
 
-    @classmethod
-    def _add_callback_handler(cls, dispatcher):
-        dispatcher.add_handler(CallbackQueryHandler(
-            cls._preset_click,
-            pattern=fr"^{cls.name}-\d+"
+    def _add_callback_handler(self):
+        self.dispatcher.add_handler(CallbackQueryHandler(
+            self._preset_click,
+            pattern=fr"^{self.name}-\d+"
         ))
 
-    @classmethod
-    def callback(cls, update: Update, _):
+    def callback(self, update: Update, _):
         update.effective_message.edit_text(
             "🔧 Imposta preset 🔧",
-            reply_markup=cls.preset_matrix
+            reply_markup=self.preset_matrix
         )
 
-    @classmethod
-    def _preset_click(cls, update: Update, _):
+    def _preset_click(self, update: Update, _):
         message = update.effective_message
         callback_data = update.callback_query.data
         seconds = int(callback_data.split('-')[-1])
@@ -61,10 +63,10 @@ class PhotoRemovalSetting(MenuSetting):
         try:
             Foto.set_chat_removal_timer(update.effective_chat, seconds)
             if seconds == Foto.SECONDS_INFINITE:
-                text = cls.PHOTO_WILL_NOT_BE_DELETED
+                text = self.PHOTO_WILL_NOT_BE_DELETED
             else:
-                text = cls.PHOTO_WILL_BE_DELETED_AFTER.format(cls.presets[seconds])
+                text = self.PHOTO_WILL_BE_DELETED_AFTER.format(self.presets[seconds])
         except AttributeError:
-            text = cls.TIMER_CHANGE_ERROR
+            text = self.TIMER_CHANGE_ERROR
         finally:
             message.edit_text(text)

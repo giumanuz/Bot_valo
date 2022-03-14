@@ -5,24 +5,29 @@ from telegram.ext import Dispatcher, CallbackQueryHandler
 
 
 class MenuSetting(ABSTRACT_CLASS):
-    name: str = ...
-    id: str = ...
 
-    @classmethod
-    def register(cls, dispatcher: Dispatcher):
-        cls.init(dispatcher)
-        dispatcher.add_handler(CallbackQueryHandler(
-            cls.callback,
-            pattern=f"^{cls.id}$",
+    def register(self):
+        self.dispatcher.add_handler(CallbackQueryHandler(
+            self.callback,
+            pattern=f"^{self.id}$",
             run_async=True
         ))
 
-    @classmethod
+    @property
     @abstractmethod
-    def init(cls, dispatcher: Dispatcher):
+    def name(self):
         ...
 
-    @classmethod
+    @property
     @abstractmethod
-    def callback(cls, update: Update, dispatcher: Dispatcher):
+    def id(self):
+        ...
+
+    @abstractmethod
+    def __init__(self, dispatcher: Dispatcher):
+        self.dispatcher = dispatcher
+        ...
+
+    @abstractmethod
+    def callback(self, update: Update, dispatcher: Dispatcher):
         ...
