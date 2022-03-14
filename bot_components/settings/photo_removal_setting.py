@@ -28,8 +28,8 @@ class PhotoRemovalSetting(MenuSetting):
         return "photo-removal-setting"
 
     def __init__(self, dispatcher: Dispatcher):
+        super().__init__(dispatcher)
         self.preset_matrix: list[list[InlineKeyboardButton]] = None
-        self.dispatcher = dispatcher
         self._add_callback_handler()
         self._init_preset_matrix()
 

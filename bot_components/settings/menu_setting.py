@@ -6,13 +6,6 @@ from telegram.ext import Dispatcher, CallbackQueryHandler
 
 class MenuSetting(ABSTRACT_CLASS):
 
-    def register(self):
-        self.dispatcher.add_handler(CallbackQueryHandler(
-            self.callback,
-            pattern=f"^{self.id}$",
-            run_async=True
-        ))
-
     @property
     @abstractmethod
     def name(self):
@@ -26,6 +19,11 @@ class MenuSetting(ABSTRACT_CLASS):
     @abstractmethod
     def __init__(self, dispatcher: Dispatcher):
         self.dispatcher = dispatcher
+        self.dispatcher.add_handler(CallbackQueryHandler(
+            self.callback,
+            pattern=f"^{self.id}$",
+            run_async=True
+        ))
         ...
 
     @abstractmethod

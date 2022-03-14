@@ -33,11 +33,6 @@ class ChatSettings:
 
     @classmethod
     def add_setting(cls, setting: MenuSetting):
-        cls.dispatcher.add_handler(CallbackQueryHandler(
-            setting.callback,
-            pattern=f"^{setting.id}$"
-        ))
-        setting.register()
         setting_button = InlineKeyboardButton(setting.name, callback_data=setting.id)
         cls.settings_matrix.append(setting_button)
 
