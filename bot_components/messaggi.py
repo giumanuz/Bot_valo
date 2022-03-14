@@ -1,12 +1,13 @@
-from telegram import Chat
 import re
 
+from telegram import Chat
 from telegram.ext import CallbackContext
 
 from bot_components.db.db_manager import Database
 
 patternRegistraRimuovi = re.compile(r"^botvalo (registra|rimuovi) chat ([a-z0-9_-]+)")
 patternScrivi = re.compile(r"^botvalo scrivi a ([a-z0-9_-]+) (.+)$")
+
 
 class Messaggi:
     @classmethod
@@ -20,15 +21,15 @@ class Messaggi:
                 Database.get().set_chat_alias(chat_name, chat_id)
                 chat.send_message("Chat registrata correttamente")
             elif comando == "rimuovi":
-                Database.get().delete_chat_alias(chat_name)
+                Database.get().remove_chat_alias(chat_name)
                 chat.send_message("Chat rimossa correttamente")
             return
 
         match = patternScrivi.search(text)
-        if match is not None:
+        if match:
             chat_name = match.group(1)
             message = match.group(2)
-            chat_id = Database.get().get_dict_alias_chat().get(chat_name, None)
+            chat_id = Database.get().get_chat_aliases().get(chat_name, None)
             if chat_id is None:
                 chat.send_message(f"Non esiste nessuna chat {chat_name}")
                 return

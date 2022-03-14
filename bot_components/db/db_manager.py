@@ -24,7 +24,7 @@ class Database(ABSTRACT_CLASS):
         ...
 
     @abstractmethod
-    def get_dict_alias_chat(self) -> dict[str, str]:
+    def get_chat_aliases(self) -> dict[str, str]:
         ...
 
     @abstractmethod
@@ -60,5 +60,5 @@ class Database(ABSTRACT_CLASS):
         ...
 
     @abstractmethod
-    def delete_chat_alias(self, name: str):
+    def remove_chat_alias(self, name: str):
         ...
