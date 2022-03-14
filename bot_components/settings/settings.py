@@ -29,8 +29,6 @@ class ChatSettings:
     @classmethod
     def _init_settings(cls):
         cls.add_setting(PhotoRemovalSetting)
-        cls.add_setting(PhotoRemovalSetting)
-        cls.add_setting(PhotoRemovalSetting)
 
     @classmethod
     def add_setting(cls, setting):
