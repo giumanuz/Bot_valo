@@ -1,6 +1,9 @@
+import logging
 import threading
+from queue import Queue
 
 from telegram import Chat
+from telegram.error import TimedOut, BadRequest
 
 from bot_components.db.db_manager import Database
 from utils.os_utils import get_current_local_datetime, get_current_weekday_name
@@ -11,6 +14,7 @@ class Foto:
     keywords: dict[str, list[str]] = {}
     blacklisted_hours: dict[str, list[int]] = {}
     SECONDS_INFINITE = 99999
+    queue = Queue()
 
     @classmethod
     def init(cls):
@@ -39,16 +43,32 @@ class Foto:
     def handle_message(cls, text: str, chat: Chat):
         if cls.hour_in_blacklist():
             return
+        seconds = Database.get().get_chat_removal_seconds(chat.id)
         for category, lst in cls.keywords.items():
-            if any(WordParser.contains(s, text) for s in lst):
+            if cls._text_in_list(text, lst):
                 random_photo = cls.__get_random_photo(category)
                 res = chat.send_photo(random_photo)
-                if not res:
-                    return
-                seconds = Database.get().get_chat_removal_seconds(chat.id)
-                if seconds == cls.SECONDS_INFINITE:
-                    return
-                threading.Timer(seconds, lambda: res.delete() if res else None).start()
+                if seconds != cls.SECONDS_INFINITE:
+                    cls.delete_message_after_seconds(res, seconds)
+
+    @classmethod
+    def _text_in_list(cls, text, lst):
+        return any(WordParser.contains(s, text) for s in lst)
+
+    @classmethod
+    def delete_message_after_seconds(cls, message, seconds: int):
+        if message:
+            threading.Timer(seconds, cls._delete_message, [message]).start()
+
+    @classmethod
+    def _delete_message(cls, message):
+        try:
+            if message:
+                message.delete()
+        except BadRequest:
+            logging.warning(f"Message not deleted: {message}")
+        except TimedOut:
+            logging.warning(f"Timed out, message not deleted: {message}")
 
     @classmethod
     def __get_random_photo(cls, category: str) -> bytes:
@@ -58,8 +78,8 @@ class Foto:
     def set_chat_removal_timer(cls, chat, seconds):
         try:
             Database.get().set_chat_removal_seconds(chat.id, float(seconds))
-        except (TypeError, AttributeError):
-            raise AttributeError()
+        except TypeError:
+            raise TypeError()
 
     @classmethod
     def hour_in_blacklist(cls) -> bool:

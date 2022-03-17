@@ -78,6 +78,18 @@ def test_Foto_ifTextContainsNonExplicitTrigger_ShouldNotSendPhoto(empty_blacklis
     assert len(bot.result) == 0
 
 
+def test_Foto_setChatRemovalTimer():
+    test_chat = MockChat(1234)
+    Foto.set_chat_removal_timer(test_chat, 30)
+    assert db.get_chat_removal_seconds(test_chat.id) == 30
+
+
+def test_Foto_deletePhoto():
+    mes = MockMessage("")
+    Foto._delete_message(mes)
+    assert mes._deleted is True
+
+
 # noinspection PyTypeChecker
 def test_Risposte_ifTextContainsTriggerWithPunctuation_ShouldReply(simple_setup):
     update1 = MockUpdate.from_message("test, grazie, test")
