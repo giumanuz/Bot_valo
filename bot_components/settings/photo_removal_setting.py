@@ -1,5 +1,5 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Dispatcher, CallbackQueryHandler
+from telegram import Update, InlineKeyboardMarkup
+from telegram.ext import Dispatcher
 
 from bot_components.foto import Foto
 from bot_components.settings.menu_setting import MenuSetting
@@ -7,7 +7,6 @@ from utils.lib_utils import FlowMatrix
 
 
 class PhotoRemovalSetting(MenuSetting):
-
     PHOTO_WILL_NOT_BE_DELETED = "Le foto non verranno eliminate... contento te 🤷"
     PHOTO_WILL_BE_DELETED_AFTER = "Le foto verranno eliminate dopo {}"
     TIMER_CHANGE_ERROR = "C'è stato un errore nella modifica del timer😥 Riprova più tardi😅"
@@ -21,7 +20,7 @@ class PhotoRemovalSetting(MenuSetting):
 
     @property
     def name(self):
-        return "Timer eliminazione foto"
+        return "Eliminazione foto ⌛"
 
     @property
     def id(self):
@@ -29,29 +28,20 @@ class PhotoRemovalSetting(MenuSetting):
 
     def __init__(self, dispatcher: Dispatcher):
         super().__init__(dispatcher)
-        self.preset_matrix: list[list[InlineKeyboardButton]] = None
-        self._add_callback_handler()
+        self.preset_matrix: InlineKeyboardMarkup = None
+        self.add_callback_query_handler(self._preset_click, r"\d+")
         self._init_preset_matrix()
 
     def _init_preset_matrix(self):
         matrix = FlowMatrix(row_length=self.__MATRIX_ROW_LENGTH)
         for seconds, name in self.presets.items():
-            button = InlineKeyboardButton(
-                name,
-                callback_data=f"{self.name}-{seconds}"
-            )
+            button = self.new_button(name, seconds)
             matrix.append(button)
         self.preset_matrix = InlineKeyboardMarkup(matrix.list)
 
-    def _add_callback_handler(self):
-        self.dispatcher.add_handler(CallbackQueryHandler(
-            self._preset_click,
-            pattern=fr"^{self.name}-\d+"
-        ))
-
     def callback(self, update: Update, _):
         update.effective_message.edit_text(
-            "🔧 Imposta preset 🔧",
+            "Elimina automaticamente le foto inviate dal bot dopo:",
             reply_markup=self.preset_matrix
         )
 

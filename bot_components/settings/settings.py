@@ -2,6 +2,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Dispatcher, CallbackQueryHandler
 
 from bot_components.menu import Menu
+from bot_components.settings.cross_chat_messaging_setting import CrossChatMessagingSetting
 from bot_components.settings.menu_setting import MenuSetting
 from bot_components.settings.photo_removal_setting import PhotoRemovalSetting
 from utils.lib_utils import FlowMatrix
@@ -30,6 +31,7 @@ class ChatSettings:
     @classmethod
     def _init_settings(cls):
         cls.add_setting(PhotoRemovalSetting(cls.dispatcher))
+        cls.add_setting(CrossChatMessagingSetting(cls.dispatcher))
 
     @classmethod
     def add_setting(cls, setting: MenuSetting):
