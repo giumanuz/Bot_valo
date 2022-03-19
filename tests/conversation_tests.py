@@ -146,13 +146,6 @@ def test_Gestore_ifHourInBlacklist_ShouldStillSendTextMessages(full_blacklist):
     assert "text" in bot.result[1]
 
 
-def test_Gestore_ifMessageEdited_ShouldNotReply(simple_setup):
-    update = MockUpdate.from_message("test")
-    update._edit_message("mazza")
-    gestore.inoltra_messaggio(update)
-    assert len(bot.result) == 0
-
-
 # noinspection PyTypeChecker
 def test_ifMoreCategoriesAreTriggered_ShouldSendMultipleMessages(empty_blacklist):
     update = MockUpdate.from_message("grazie insulta Test")
