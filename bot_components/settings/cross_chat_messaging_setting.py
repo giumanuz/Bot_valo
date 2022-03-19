@@ -33,32 +33,42 @@ class CrossChatMessagingSetting(MenuSetting):
         btn_rimuovi = self.new_button("Rimuovi chat", self.CMD_RIMUOVI)
         btn_manda = self.new_button("Manda messaggio", self.CMD_MANDA)
         btn_annulla = self.new_button("Annulla", self.CMD_ANNULLA)
-        flow_matrix = FlowMatrix(row_length=self.__MATRIX_ROW_LENGTH)
-        flow_matrix.append(btn_registra)
-        flow_matrix.append(btn_rimuovi)
-        flow_matrix.append(btn_manda)
-        flow_matrix.append(btn_annulla)
-        self.command_matrix = InlineKeyboardMarkup(flow_matrix.list)
+
+        buttons_matrix = FlowMatrix(row_length=self.__MATRIX_ROW_LENGTH)
+        buttons_matrix.append(btn_registra)
+        buttons_matrix.append(btn_rimuovi)
+        buttons_matrix.append(btn_manda)
+        buttons_matrix.append(btn_annulla)
+        self.command_matrix = InlineKeyboardMarkup(buttons_matrix.list)
 
     def add_handlers(self):
+        self.__add_handler_registra()
+        self.add_callback_query_handler(self.rimuovi_chat, self.CMD_RIMUOVI)
+        self.__add_handler_manda_messaggio()
+        self.add_callback_query_handler(self.rimuovi_chat, self.CMD_RIMUOVI)
+        self.add_callback_query_handler(self.annulla, self.CMD_ANNULLA)
+
+    def __add_handler_registra(self):
         self.dispatcher.add_handler(ConversationHandler(
-            entry_points=[CallbackQueryHandler(self.inserisci_alias_chat, pattern=self.pattern(self.CMD_REGISTRA))],
+            entry_points=[CallbackQueryHandler(self.inserisci_alias_chat,
+                                               pattern=self.pattern(self.CMD_REGISTRA))],
             states={
                 0: [MessageHandler(Filters.text & ~Filters.command, self.registra_chat)]
             },
             fallbacks=[CommandHandler("quit", self.annulla, ~Filters.update.edited_message)]
         ))
-        self.add_callback_query_handler(self.rimuovi_chat, self.CMD_RIMUOVI)
+
+    def __add_handler_manda_messaggio(self):
         self.dispatcher.add_handler(ConversationHandler(
-            entry_points=[CallbackQueryHandler(self.scegli_alias, pattern=self.pattern(self.CMD_MANDA))],
+            entry_points=[CallbackQueryHandler(self.scegli_alias,
+                                               pattern=self.pattern(self.CMD_MANDA))],
             states={
-                0: [CallbackQueryHandler(self.inserisci_messaggio, pattern=self.pattern("alias", r"-?\d+"))],
+                0: [CallbackQueryHandler(self.inserisci_messaggio,
+                                         pattern=self.pattern("alias", r"-?\d+"))],
                 1: [MessageHandler(Filters.text & ~Filters.command, self.invia_messaggio)]
             },
             fallbacks=[CommandHandler("quit", self.annulla, ~Filters.update.edited_message)]
         ))
-        self.add_callback_query_handler(self.rimuovi_chat, self.CMD_RIMUOVI)
-        self.add_callback_query_handler(self.annulla, self.CMD_ANNULLA)
 
     def callback(self, update: Update, _):
         update.effective_message.edit_text(
@@ -66,26 +76,32 @@ class CrossChatMessagingSetting(MenuSetting):
             reply_markup=self.command_matrix
         )
 
-    @staticmethod
-    def inserisci_alias_chat(update: Update, _):
+    @classmethod
+    def inserisci_alias_chat(cls, update: Update, _):
+        existing_aliases = Database.get().get_chat_aliases()
+        for alias, chat_id in existing_aliases.items():
+            if chat_id == update.effective_chat.id:
+                update.effective_message.edit_text(f"Chat già registrata come '{alias}'.")
+                return ConversationHandler.END
         update.effective_message.edit_text("Inserisci il nome della chat:")
         return 0
 
-    @staticmethod
-    def registra_chat(update: Update, _):
-        existing_aliases = Database.get().get_chat_aliases()
+    @classmethod
+    def registra_chat(cls, update: Update, _):
         new_alias = update.message.text
         this_chat = update.effective_chat
-        for alias, chat_id in existing_aliases.items():
-            if chat_id == this_chat.id:
-                this_chat.send_message(f"Chat già registrata come '{alias}'.")
-                return ConversationHandler.END
-            if alias == new_alias.lower():
-                this_chat.send_message("Questo nome già esiste, scegline un altro.")
-                return 0
-        Database.get().set_chat_alias(new_alias, this_chat.id)
-        this_chat.send_message("Chat registrata correttamente")
-        return ConversationHandler.END
+        if cls.alias_already_existing(new_alias):
+            this_chat.send_message("Questo nome già esiste, scegline un altro:")
+            return 0
+        else:
+            Database.get().set_chat_alias(new_alias, this_chat.id)
+            this_chat.send_message("Chat registrata correttamente")
+            return ConversationHandler.END
+
+    @staticmethod
+    def alias_already_existing(new_alias):
+        existing_aliases = Database.get().get_chat_aliases()
+        return any(new_alias == alias for alias in existing_aliases)
 
     @staticmethod
     def rimuovi_chat(update: Update, _):
@@ -98,6 +114,18 @@ class CrossChatMessagingSetting(MenuSetting):
         update.effective_message.edit_text("La chat non è registrata.")
 
     def scegli_alias(self, update: Update, _):
+        try:
+            matrix = self._get_available_chats(update)
+            update.effective_message.edit_text(
+                "Scegli la chat:",
+                reply_markup=InlineKeyboardMarkup(matrix.list)
+            )
+            return 0
+        except NoChatsAvailable:
+            update.effective_message.edit_text("Non ci sono altre chat a cui inviare messaggi.")
+            return ConversationHandler.END
+
+    def _get_available_chats(self, update):
         existing_aliases = Database.get().get_chat_aliases()
         matrix = FlowMatrix(row_length=2)
         for alias, chat_id in existing_aliases.items():
@@ -106,13 +134,8 @@ class CrossChatMessagingSetting(MenuSetting):
             btn = self.new_button(alias, "alias", chat_id)
             matrix.append(btn)
         if matrix.is_empty():
-            update.effective_message.edit_text("Non ci sono altre chat a cui inviare messaggi.")
-            return ConversationHandler.END
-        update.effective_message.edit_text(
-            "Scegli la chat:",
-            reply_markup=InlineKeyboardMarkup(matrix.list)
-        )
-        return 0
+            raise NoChatsAvailable()
+        return matrix
 
     @staticmethod
     def inserisci_messaggio(update: Update, context: CallbackContext):
@@ -141,3 +164,7 @@ class CrossChatMessagingSetting(MenuSetting):
         else:
             update.effective_chat.send_message("Azione annullata correttamente.")
         return ConversationHandler.END
+
+
+class NoChatsAvailable(Exception):
+    pass
