@@ -100,8 +100,8 @@ class FirebaseStorage(Database):
 
     def set_chat_alias(self, name: str, chat_id: int):
         doc = self._get_config_doc("alias_chat")
-        doc.update({name: chat_id})
+        doc.update({f"`{name}`": chat_id})
 
     def remove_chat_alias(self, name: str):
         doc = self._get_config_doc("alias_chat")
-        doc.update({name: firestore.firestore.DELETE_FIELD})
+        doc.update({f"`{name}`": firestore.firestore.DELETE_FIELD})

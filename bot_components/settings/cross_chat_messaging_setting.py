@@ -1,3 +1,4 @@
+import telegram.error
 from telegram import Update, InlineKeyboardMarkup
 from telegram.ext import Dispatcher, CallbackQueryHandler, ConversationHandler, MessageHandler, Filters, \
     CommandHandler, CallbackContext
@@ -154,6 +155,10 @@ class CrossChatMessagingSetting(MenuSetting):
             update.effective_chat.send_message("Messaggio inviato correttamente.")
         except KeyError:
             update.effective_chat.send_message("Si è verificato un errore. Riprova.")
+        except telegram.error.BadRequest as e:
+            if e.message == "Chat not found":
+                update.effective_chat.send_message("Il bot deve essere nel gruppo per poter mandare "
+                                                   "un messaggio.")
         finally:
             return ConversationHandler.END
 
