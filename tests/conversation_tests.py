@@ -4,7 +4,7 @@ import bot_components.gestore as gestore
 from bot_components.db.db_manager import Database
 from bot_components.foto import Foto
 from bot_components.insulti import Insulti
-from bot_components.menu import show_menu
+from bot_components.menu import Menu
 from bot_components.risposte import Risposte
 from tests.framework.mockbot import MockBot
 from tests.framework.mockcontext import MockContext
@@ -78,6 +78,18 @@ def test_Foto_ifTextContainsNonExplicitTrigger_ShouldNotSendPhoto(empty_blacklis
     assert len(bot.result) == 0
 
 
+def test_Foto_setChatRemovalTimer():
+    test_chat = MockChat(1234)
+    Foto.set_chat_removal_timer(test_chat, 30)
+    assert db.get_chat_removal_seconds(test_chat.id) == 30
+
+
+def test_Foto_deletePhoto():
+    mes = MockMessage("")
+    Foto._delete_message(mes)
+    assert mes._deleted is True
+
+
 # noinspection PyTypeChecker
 def test_Risposte_ifTextContainsTriggerWithPunctuation_ShouldReply(simple_setup):
     update1 = MockUpdate.from_message("test, grazie, test")
@@ -134,41 +146,6 @@ def test_Gestore_ifHourInBlacklist_ShouldStillSendTextMessages(full_blacklist):
     assert "text" in bot.result[1]
 
 
-def test_Gestore_ifMessageEdited_ShouldNotReply(simple_setup):
-    update = MockUpdate.from_message("test")
-    update._edit_message("mazza")
-    gestore.inoltra_messaggio(update)
-    assert len(bot.result) == 0
-
-
-def test_Gestore_ifMessageIsTimerCommand_ShouldChangeChatPhotoRemovalTimer(simple_setup):
-    TEST_CHAT_ID = -234410
-    TEST_CHAT = MockChat(TEST_CHAT_ID)
-
-    update1 = MockUpdate.from_message("botvalo timer 20")
-    update1._chat = TEST_CHAT
-    gestore.inoltra_messaggio(update1)
-    assert str(TEST_CHAT_ID) in db.removal_seconds
-    assert db.get_chat_removal_seconds(TEST_CHAT_ID) == 20
-
-    update2 = MockUpdate.from_message("botvalo timer 5.7")
-    update2._chat = TEST_CHAT
-    gestore.inoltra_messaggio(update2)
-    assert db.get_chat_removal_seconds(TEST_CHAT_ID) == 5.7
-
-
-def test_Foto_onTimerCommandWithoutParameters_ShouldNotChangeChatPhotoRemovalTimer(simple_setup):
-    TEST_CHAT_ID = -234410
-    db.set_chat_removal_seconds(TEST_CHAT_ID, 1752)
-
-    update = MockUpdate.from_message("botvalo timer")
-    update._chat = MockChat(TEST_CHAT_ID)
-    gestore.inoltra_messaggio(update)
-    assert db.get_chat_removal_seconds(TEST_CHAT_ID) == 1752
-    assert len(bot.result) == 1
-    assert "1752" in bot.result[0]['text']
-
-
 # noinspection PyTypeChecker
 def test_ifMoreCategoriesAreTriggered_ShouldSendMultipleMessages(empty_blacklist):
     update = MockUpdate.from_message("grazie insulta Test")
@@ -183,7 +160,7 @@ def test_ifMoreCategoriesAreTriggered_ShouldSendMultipleMessages(empty_blacklist
 def test_onMenuCommand_ShouldSendMenu(simple_setup):
     from telegram.inline.inlinekeyboardmarkup import InlineKeyboardMarkup
     update = MockUpdate.empty()
-    show_menu(update)
+    Menu.show(update)
     res = bot.result
     assert len(res) == 1
     assert 'reply_markup' in res[0]

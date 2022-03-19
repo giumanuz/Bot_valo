@@ -53,13 +53,19 @@ class FirebaseStorage(Database):
     def _get_config_doc_as_dict(self, document: str):
         configs = self._firestore_client.collection("configs")
         document = configs.document(document)
-        return document.get().to_dict()
+        doc = document.get()
+        if not doc.exists:
+            raise FileNotFoundError()
+        return doc.to_dict()
 
     def get_lista_insulti(self) -> list[str]:
         doc_insulti = self._get_config_doc("insulti")
         dict_insulti = doc_insulti.get(['insulti']).to_dict()
         lista_insulti = dict_insulti['insulti']
         return lista_insulti
+
+    def get_chat_aliases(self) -> dict[str, int]:
+        return self._get_config_doc_as_dict("alias_chat")
 
     def get_keyword_foto(self) -> dict[str, list[str]]:
         return self._get_config_doc_as_dict("keyword_foto")
@@ -84,10 +90,18 @@ class FirebaseStorage(Database):
 
     def get_chat_removal_seconds(self, chat_id: int, default=5) -> dict:
         chat_id = str(chat_id)
-        doc = self._get_config_doc("chat_removal_seconds")
-        return doc.get().to_dict().get(chat_id, default)
+        doc_data = self._get_config_doc_as_dict("chat_removal_seconds")
+        return doc_data.get(chat_id, default)
 
     def set_chat_removal_seconds(self, chat_id: int, seconds: float):
         chat_id = str(chat_id)
         doc = self._get_config_doc("chat_removal_seconds")
         doc.update({chat_id: seconds})
+
+    def set_chat_alias(self, name: str, chat_id: int):
+        doc = self._get_config_doc("alias_chat")
+        doc.update({name: chat_id})
+
+    def remove_chat_alias(self, name: str):
+        doc = self._get_config_doc("alias_chat")
+        doc.update({name: firestore.firestore.DELETE_FIELD})

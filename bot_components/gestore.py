@@ -9,7 +9,7 @@ from utils.telegram_utils import get_effective_text
 
 def add_message_handlers(dispatcher: Dispatcher):
     dispatcher.add_handler(MessageHandler(
-        filters=Filters.text | Filters.caption,
+        filters=(Filters.text | Filters.caption) & ~Filters.update.edited_message,
         callback=inoltra_messaggio,
         pass_user_data=True,
         run_async=True)
@@ -17,16 +17,7 @@ def add_message_handlers(dispatcher: Dispatcher):
 
 
 def inoltra_messaggio(update: Update, _=None):
-    if has_invalid_message(update):
-        return
     text, chat = get_effective_text(update), update.effective_chat
-    if "botvalo timer" in text:
-        Foto.set_chat_removal_timer(text, chat)
-        return
     Risposte.handle_message(text, chat)
     Insulti.handle_message(text, chat)
     Foto.handle_message(text, chat)
-
-
-def has_invalid_message(update):
-    return update.edited_message is not None or update.effective_message.text is None

@@ -15,6 +15,8 @@ class MockMessage:
         self._reply_markup = reply_markup
         self._caption = caption
         self._chat_id = chat_id
+        self._deleted = False
+        self._exception_on_delete = None
 
     @classmethod
     def _SET_COMMON_BOT(cls, bot):
@@ -48,3 +50,12 @@ class MockMessage:
 
     def reply_photo(self, photo):
         self.__COMMON_BOT.send_photo(chat_id=self.chat_id, photo=photo)
+
+    def delete(self):
+        if self._exception_on_delete:
+            raise self._exception_on_delete
+        else:
+            self._deleted = True
+
+    def _set_exception_on_delete(self, exception_type):
+        self._exception_on_delete = exception_type

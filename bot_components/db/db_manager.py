@@ -24,6 +24,10 @@ class Database(ABSTRACT_CLASS):
         ...
 
     @abstractmethod
+    def get_chat_aliases(self) -> dict[str, str]:
+        ...
+
+    @abstractmethod
     def get_keyword_foto(self) -> dict[str, list[str]]:
         ...
 
@@ -49,4 +53,12 @@ class Database(ABSTRACT_CLASS):
 
     @abstractmethod
     def set_chat_removal_seconds(self, chat_id: int, seconds: float):
+        ...
+
+    @abstractmethod
+    def set_chat_alias(self, name: str, chat_id: int):
+        ...
+
+    @abstractmethod
+    def remove_chat_alias(self, name: str):
         ...

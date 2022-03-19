@@ -9,6 +9,7 @@ class MockDatabase(Database):
         self.schedule_blacklist = {}
         self.dict_risposte = {}
         self.removal_seconds = {}
+        self.aliases = {}
 
     def load_default_values(self):
         self.lista_insulti = [
@@ -27,6 +28,7 @@ class MockDatabase(Database):
             "ricorsione": "risposta_ricorsione",
             "ricorsivo": "ALT::ricorsione"
         }
+        self.aliases = {"test": "-1230401"}
 
     def register_for_config_changes(self, document: str, callback):
         callback()
@@ -54,3 +56,12 @@ class MockDatabase(Database):
 
     def set_chat_removal_seconds(self, chat_id: int, seconds: float):
         self.removal_seconds[str(chat_id)] = seconds
+
+    def get_chat_aliases(self) -> dict[str, str]:
+        pass
+
+    def set_chat_alias(self, name: str, chat_id: int):
+        pass
+
+    def remove_chat_alias(self, name: str):
+        pass

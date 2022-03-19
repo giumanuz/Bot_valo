@@ -7,10 +7,14 @@ from telegram.ext import Updater
 from bot_components.db.db_manager import Database
 from bot_components.db.firebase_manager import FirebaseStorage
 from bot_components.foto import Foto
+from bot_components.games.snake import init_snake
+from bot_components.games.tris import init_tris
 from bot_components.gestore import add_message_handlers
 from bot_components.insulti import Insulti
-from bot_components.menu import init_menu
+from bot_components.menu import Menu
+from bot_components.prenotazioni import init_prenotazioni
 from bot_components.risposte import Risposte
+from bot_components.settings.settings import ChatSettings
 
 
 def main():
@@ -18,7 +22,7 @@ def main():
     SERVER_PORT = get_server_port()
     is_server = 'ON_HEROKU' in environment_variables
 
-    check_environment_variables(True)
+    check_environment_variables(is_server)
 
     logging.basicConfig(level=logging.WARNING)
 
@@ -72,13 +76,20 @@ def setup_db():
 
 
 def init_bot_components(dispatcher):
-    logging.debug("Init components...")
-    init_menu(dispatcher)
+    logging.info("Init components...")
+
+    Menu.init(dispatcher)
+    init_prenotazioni(dispatcher)
+    init_tris(dispatcher)
+    init_snake(dispatcher)
+    ChatSettings.init(dispatcher)
+
     Risposte.init()
     Insulti.init()
     Foto.init()
     add_message_handlers(dispatcher)
-    logging.debug("Init done.")
+
+    logging.info("Init done.")
 
 
 def get_updater(token: str) -> Updater:
