@@ -129,7 +129,7 @@ class CrossChatMessagingSetting(MenuSetting):
     def _get_available_chats(self, update):
         existing_aliases = Database.get().get_chat_aliases()
         matrix = FlowMatrix(row_length=2)
-        for alias, chat_id in existing_aliases.items():
+        for alias, chat_id in sorted(existing_aliases.items()):
             if chat_id == update.effective_chat.id:
                 continue
             btn = self.new_button(alias, "alias", chat_id)
@@ -162,8 +162,6 @@ class CrossChatMessagingSetting(MenuSetting):
                                                    "un messaggio.")
             else:
                 update.effective_chat.send_message("Si è verificato un errore nell'invio del messaggio.")
-        except Exception as e:
-            print(e)
         finally:
             return ConversationHandler.END
 
