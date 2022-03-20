@@ -66,7 +66,7 @@ class CrossChatMessagingSetting(MenuSetting):
             states={
                 0: [CallbackQueryHandler(self.inserisci_messaggio,
                                          pattern=self.pattern("alias", r"-?\d+"))],
-                1: [MessageHandler(Filters.text & ~Filters.command, self.invia_messaggio)]
+                1: [MessageHandler(Filters.all & ~Filters.command, self.invia_messaggio)]
             },
             fallbacks=[CommandHandler("quit", self.annulla, ~Filters.update.edited_message)]
         ))
@@ -150,8 +150,9 @@ class CrossChatMessagingSetting(MenuSetting):
     def invia_messaggio(update: Update, context: CallbackContext):
         try:
             chat_id = context.chat_data["selected_chat_id"]
-            message = update.message.text
-            context.bot.send_message(chat_id=chat_id, text=message)
+            context.bot.copy_message(chat_id=chat_id,
+                                     from_chat_id=update.effective_chat.id,
+                                     message_id=update.message.message_id)
             update.effective_chat.send_message("Messaggio inviato correttamente.")
         except KeyError:
             update.effective_chat.send_message("Si è verificato un errore. Riprova.")
@@ -159,6 +160,10 @@ class CrossChatMessagingSetting(MenuSetting):
             if e.message == "Chat not found":
                 update.effective_chat.send_message("Il bot deve essere nel gruppo per poter mandare "
                                                    "un messaggio.")
+            else:
+                update.effective_chat.send_message("Si è verificato un errore nell'invio del messaggio.")
+        except Exception as e:
+            print(e)
         finally:
             return ConversationHandler.END
 
