@@ -1,6 +1,6 @@
 from pytest import fixture
 
-from tests.test_utilities.common_tests_utils import GET_COMMON_BOT
+from botvalo_tests.test_utilities.common_tests_utils import GET_COMMON_BOT
 
 
 @fixture

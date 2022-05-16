@@ -1,5 +1,5 @@
-from tests.framework.mockchat import MockChat
-from tests.framework.mockmessage import MockMessage
+from botvalo_tests.framework.mockchat import MockChat
+from botvalo_tests.framework.mockmessage import MockMessage
 
 COMMON_BOT = None
 

@@ -6,14 +6,14 @@ from bot_components.foto import Foto
 from bot_components.insulti import Insulti
 from bot_components.menu import Menu
 from bot_components.risposte import Risposte
-from tests.framework.mockbot import MockBot
-from tests.framework.mockcontext import MockContext
-from tests.framework.mockdatabase import MockDatabase
-from tests.framework.mockdispatcher import MockDispatcher
-from tests.framework.mockupdate import MockUpdate
+from botvalo_tests.framework.mockbot import MockBot
+from botvalo_tests.framework.mockcontext import MockContext
+from botvalo_tests.framework.mockdatabase import MockDatabase
+from botvalo_tests.framework.mockdispatcher import MockDispatcher
+from botvalo_tests.framework.mockupdate import MockUpdate
 # noinspection PyUnresolvedReferences
-from tests.test_utilities.common_fixtures import *
-from tests.test_utilities.common_tests_utils import *
+from botvalo_tests.test_utilities.common_fixtures import *
+from botvalo_tests.test_utilities.common_tests_utils import *
 
 bot = MockBot()
 dispatcher = MockDispatcher(bot)

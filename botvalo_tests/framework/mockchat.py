@@ -10,6 +10,11 @@ class MockChat:
     def id(self):
         return self._id
 
+    @property
+    def type(self):
+        # TODO: Configurable chat type
+        return False
+
     def send_message(self, text, reply_markup=None):
         self.__COMMON_BOT.send_message(chat_id=self._id,
                                        text=text,
