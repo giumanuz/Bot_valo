@@ -2,6 +2,15 @@ from bot_components.db.db_manager import Database
 
 
 class MockDatabase(Database):
+    def get_ban_times(self, user_id) -> int:
+        pass
+
+    def set_ban_times(self, user_id, ban_times):
+        pass
+
+    def get_timeout_words(self) -> list[str]:
+        pass
+
     def __init__(self):
         self.lista_insulti = []
         self.keyword_foto = {}

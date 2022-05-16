@@ -1,6 +1,7 @@
 from telegram import Update
 from telegram.ext import Dispatcher, MessageHandler, Filters
 
+from bot_components.anti_cioppy_policy import AntiCioppyPolicy
 from bot_components.foto import Foto
 from bot_components.insulti import Insulti
 from bot_components.risposte import Risposte
@@ -21,3 +22,4 @@ def inoltra_messaggio(update: Update, _=None):
     Risposte.handle_message(text, chat)
     Insulti.handle_message(text, chat)
     Foto.handle_message(text, chat)
+    AntiCioppyPolicy.handle_message(text, chat, update)

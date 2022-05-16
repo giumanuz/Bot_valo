@@ -59,8 +59,7 @@ class FirebaseStorage(Database):
         return doc.to_dict()
 
     def get_lista_insulti(self) -> list[str]:
-        doc_insulti = self._get_config_doc("insulti")
-        dict_insulti = doc_insulti.get(['insulti']).to_dict()
+        dict_insulti = self._get_config_doc_as_dict("insulti")
         lista_insulti = dict_insulti['insulti']
         return lista_insulti
 
@@ -105,3 +104,17 @@ class FirebaseStorage(Database):
     def remove_chat_alias(self, name: str):
         doc = self._get_config_doc("alias_chat")
         doc.update({f"`{name}`": firestore.firestore.DELETE_FIELD})
+
+    def get_timeout_words(self) -> list[str]:
+        words_dict = self._get_config_doc_as_dict("timeout")
+        words_list: list[str] = words_dict['blacklisted_words']
+        return words_list
+
+    def get_ban_times(self, user_id) -> int:
+        doc_data = self._get_config_doc_as_dict("timeout")
+        ban_times_dict: dict[str, int] = doc_data['ban_times']
+        return ban_times_dict.get(str(user_id), 0)
+
+    def set_ban_times(self, user_id, ban_times):
+        doc = self._get_config_doc("timeout")
+        doc.update({f"`ban_times.{user_id}`": ban_times})

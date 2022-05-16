@@ -62,3 +62,15 @@ class Database(ABSTRACT_CLASS):
     @abstractmethod
     def remove_chat_alias(self, name: str):
         ...
+
+    @abstractmethod
+    def get_timeout_words(self) -> list[str]:
+        ...
+
+    @abstractmethod
+    def get_ban_times(self, user_id) -> int:
+        ...
+
+    @abstractmethod
+    def set_ban_times(self, user_id, ban_times):
+        ...
