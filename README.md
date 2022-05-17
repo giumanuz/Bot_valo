@@ -31,3 +31,6 @@ principalmente due servizi di firebase:
   (quindi, delle sottocartelle) deve corrispondere alle rispettive voci dentro il file
   `keyword_foto` nel firestore database. Se vuoi aggiungere categorie e non sai come fare, chiedi
   a [@EdoTM](https://github.com/EdoTM).
+
+
+
