@@ -1,5 +1,6 @@
 import threading
 from datetime import timedelta
+from math import ceil
 
 import telegram.error
 from telegram import Chat, Update, User
@@ -10,10 +11,10 @@ from bot_components.db.db_manager import Database as Db
 
 class AntiCioppyPolicy:
     timeout_words_list = list()
-    min_ban_time_in_minutes: int = 8  # Must be at least 1
+    initial_ban_time_in_minutes: int = 8
 
     timeout_alerts = 0
-    CIOPPY_USER_ID = 147948029  # 364369396
+    CIOPPY_USER_ID = 364369396
 
     BAN_MESSAGE = "Bannato Cioppy per {minutes} minuti!"
     BAN_ERROR_MESSAGE = "Non sono riuscito a bannare quel troione di Cioppy. Forse mi mancano dei permessi?"
@@ -25,7 +26,7 @@ class AntiCioppyPolicy:
 
     @classmethod
     def init(cls):
-        cls.min_ban_time_in_minutes = max(1, cls.min_ban_time_in_minutes)
+        cls.initial_ban_time_in_minutes = max(1, cls.initial_ban_time_in_minutes)
         Db.get().register_for_config_changes("timeout_sensitive_words", cls._init_timeout_words_list)
 
     @classmethod
@@ -60,7 +61,7 @@ class AntiCioppyPolicy:
     def _timeout_member(cls, chat, cioppy_user):
         ban_minutes = cls.get_ban_minutes()
         unban_date = cls.get_unban_date(ban_minutes)
-        cls.ban_cioppy(chat, until_date=unban_date)
+        cls.ban(chat, until_date=unban_date)
         cls.timeout_alerts = 0
         cls.send_ban_message_to_group(chat, ban_minutes)
         cls.send_private_ban_message(cioppy_user, ban_minutes, unban_date)
@@ -68,13 +69,27 @@ class AntiCioppyPolicy:
         cls.increment_cioppy_bans()
 
     @classmethod
-    def increment_cioppy_bans(cls):
-        number_of_bans = Db.get().get_cioppy_bans() + 1
-        Db.get().set_cioppy_bans(number_of_bans)
+    def get_ban_minutes(cls):
+        ban_times = Db.get().get_cioppy_bans() + 1
+        return cls.increment_function(ban_times)
 
     @classmethod
-    def send_error_message(cls, chat):
-        chat.send_message(cls.BAN_ERROR_MESSAGE)
+    def increment_function(cls, k) -> int:
+        return ceil(cls.initial_ban_time_in_minutes * (k ** 1.5))
+
+    @classmethod
+    def get_unban_date(cls, minutes):
+        time_now = utils.os_utils.get_current_local_datetime()
+        return time_now + timedelta(minutes=minutes)
+
+    @classmethod
+    def ban(cls, chat: Chat, until_date):
+        try:
+            success = chat.ban_member(cls.CIOPPY_USER_ID, until_date=until_date)
+            if not success:
+                raise CannotBanMember()
+        except telegram.error.BadRequest:
+            raise CannotBanMember()
 
     @classmethod
     def send_ban_message_to_group(cls, chat, ban_minutes):
@@ -96,23 +111,9 @@ class AntiCioppyPolicy:
         ]).start()
 
     @classmethod
-    def get_ban_minutes(cls):
-        ban_times = Db.get().get_cioppy_bans() + 1
-        return cls.min_ban_time_in_minutes * ban_times
-
-    @classmethod
-    def get_unban_date(cls, minutes):
-        time_now = utils.os_utils.get_current_local_datetime()
-        return time_now + timedelta(minutes=minutes)
-
-    @classmethod
-    def ban_cioppy(cls, chat: Chat, until_date):
-        try:
-            success = chat.ban_member(cls.CIOPPY_USER_ID, until_date=until_date)
-            if not success:
-                raise CannotBanMember()
-        except telegram.error.BadRequest:
-            raise CannotBanMember()
+    def increment_cioppy_bans(cls):
+        number_of_bans = Db.get().get_cioppy_bans() + 1
+        Db.get().set_cioppy_bans(number_of_bans)
 
     @classmethod
     def warn_member(cls, max_alerts, update: Update):
@@ -120,6 +121,10 @@ class AntiCioppyPolicy:
             cls.WARN_MESSAGE.format(current_warns=cls.timeout_alerts,
                                     max_warns=max_alerts)
         )
+
+    @classmethod
+    def send_error_message(cls, chat):
+        chat.send_message(cls.BAN_ERROR_MESSAGE)
 
 
 class CannotBanMember(Exception):
