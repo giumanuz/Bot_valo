@@ -59,8 +59,7 @@ class FirebaseStorage(Database):
         return doc.to_dict()
 
     def get_lista_insulti(self) -> list[str]:
-        doc_insulti = self._get_config_doc("insulti")
-        dict_insulti = doc_insulti.get(['insulti']).to_dict()
+        dict_insulti = self._get_config_doc_as_dict("insulti")
         lista_insulti = dict_insulti['insulti']
         return lista_insulti
 
@@ -105,3 +104,20 @@ class FirebaseStorage(Database):
     def remove_chat_alias(self, name: str):
         doc = self._get_config_doc("alias_chat")
         doc.update({f"`{name}`": firestore.firestore.DELETE_FIELD})
+
+    def get_cioppy_blacklist_words(self) -> list[str]:
+        words_dict = self._get_config_doc_as_dict("timeout")
+        words_list: list[str] = words_dict['blacklisted_words']
+        return words_list
+
+    def get_cioppy_bans(self) -> int:
+        doc_data = self._get_config_doc_as_dict("timeout")
+        return doc_data['bans']
+
+    def set_cioppy_bans(self, ban_times):
+        doc = self._get_config_doc("timeout")
+        doc.update({"bans": ban_times})
+
+    def get_cioppy_max_alerts(self) -> int:
+        doc_data = self._get_config_doc_as_dict("timeout")
+        return doc_data['max_alerts']

@@ -4,6 +4,7 @@ from os import environ as environment_variables
 from dotenv import load_dotenv
 from telegram.ext import Updater
 
+from bot_components.anti_cioppy_policy import AntiCioppyPolicy
 from bot_components.db.db_manager import Database
 from bot_components.db.firebase_manager import FirebaseStorage
 from bot_components.foto import Foto
@@ -87,6 +88,7 @@ def init_bot_components(dispatcher):
     Risposte.init()
     Insulti.init()
     Foto.init()
+    AntiCioppyPolicy.init()
     add_message_handlers(dispatcher)
 
     logging.info("Init done.")

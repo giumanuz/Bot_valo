@@ -1,4 +1,4 @@
-from tests.framework.mockmessage import MockMessage
+from botvalo_tests.framework.mockmessage import MockMessage
 
 
 class MockBot:

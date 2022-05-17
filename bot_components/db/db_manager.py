@@ -62,3 +62,19 @@ class Database(ABSTRACT_CLASS):
     @abstractmethod
     def remove_chat_alias(self, name: str):
         ...
+
+    @abstractmethod
+    def get_cioppy_blacklist_words(self) -> list[str]:
+        ...
+
+    @abstractmethod
+    def get_cioppy_bans(self) -> int:
+        ...
+
+    @abstractmethod
+    def set_cioppy_bans(self, ban_times):
+        ...
+
+    @abstractmethod
+    def get_cioppy_max_alerts(self) -> int:
+        ...

@@ -3,9 +3,9 @@ import telegram.error
 
 from bot_components.foto import Foto
 from bot_components.menu import Menu
-from tests.framework.mockchat import MockChat
-from tests.framework.mockdispatcher import MockDispatcher
-from tests.framework.mockmessage import MockMessage
+from botvalo_tests.framework.mockchat import MockChat
+from botvalo_tests.framework.mockdispatcher import MockDispatcher
+from botvalo_tests.framework.mockmessage import MockMessage
 
 
 def test_Menu_shouldAddCommandHandler_WhenInit():
