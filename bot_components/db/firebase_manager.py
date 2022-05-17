@@ -105,16 +105,19 @@ class FirebaseStorage(Database):
         doc = self._get_config_doc("alias_chat")
         doc.update({f"`{name}`": firestore.firestore.DELETE_FIELD})
 
-    def get_timeout_words(self) -> list[str]:
+    def get_cioppy_blacklist_words(self) -> list[str]:
         words_dict = self._get_config_doc_as_dict("timeout")
         words_list: list[str] = words_dict['blacklisted_words']
         return words_list
 
-    def get_ban_times(self, user_id) -> int:
+    def get_cioppy_bans(self) -> int:
         doc_data = self._get_config_doc_as_dict("timeout")
-        ban_times_dict: dict[str, int] = doc_data['ban_times']
-        return ban_times_dict.get(str(user_id), 0)
+        return doc_data['bans']
 
-    def set_ban_times(self, user_id, ban_times):
+    def set_cioppy_bans(self, ban_times):
         doc = self._get_config_doc("timeout")
-        doc.update({f"`ban_times.{user_id}`": ban_times})
+        doc.update({"bans": ban_times})
+
+    def get_cioppy_max_alerts(self) -> int:
+        doc_data = self._get_config_doc_as_dict("timeout")
+        return doc_data['max_alerts']

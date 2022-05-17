@@ -64,13 +64,17 @@ class Database(ABSTRACT_CLASS):
         ...
 
     @abstractmethod
-    def get_timeout_words(self) -> list[str]:
+    def get_cioppy_blacklist_words(self) -> list[str]:
         ...
 
     @abstractmethod
-    def get_ban_times(self, user_id) -> int:
+    def get_cioppy_bans(self) -> int:
         ...
 
     @abstractmethod
-    def set_ban_times(self, user_id, ban_times):
+    def set_cioppy_bans(self, ban_times):
+        ...
+
+    @abstractmethod
+    def get_cioppy_max_alerts(self) -> int:
         ...
