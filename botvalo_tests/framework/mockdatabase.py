@@ -65,3 +65,15 @@ class MockDatabase(Database):
 
     def remove_chat_alias(self, name: str):
         pass
+
+    def get_cioppy_blacklist_words(self) -> list[str]:
+        pass
+
+    def get_cioppy_bans(self) -> int:
+        pass
+
+    def set_cioppy_bans(self, ban_times):
+        pass
+
+    def get_cioppy_max_alerts(self) -> int:
+        pass

@@ -1,9 +1,9 @@
 from telegram import InlineKeyboardMarkup
 
-from tests.framework.mockcallbackquery import MockCallbackQuery
-from tests.framework.mockchat import MockChat
-from tests.framework.mockmessage import MockMessage
-from tests.framework.mockuser import MockUser
+from botvalo_tests.framework.mockcallbackquery import MockCallbackQuery
+from botvalo_tests.framework.mockchat import MockChat
+from botvalo_tests.framework.mockmessage import MockMessage
+from botvalo_tests.framework.mockuser import MockUser
 
 
 class MockUpdate:

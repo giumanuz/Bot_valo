@@ -1,11 +1,11 @@
 import pytest
 
 from bot_components.games.tris import *
-from tests.framework.mockbot import MockBot
-from tests.framework.mockcontext import MockContext
-from tests.framework.mockdispatcher import MockDispatcher
-from tests.framework.mockupdate import MockUpdate
-from tests.test_utilities.tris_tests_utils import *
+from botvalo_tests.framework.mockbot import MockBot
+from botvalo_tests.framework.mockcontext import MockContext
+from botvalo_tests.framework.mockdispatcher import MockDispatcher
+from botvalo_tests.framework.mockupdate import MockUpdate
+from botvalo_tests.test_utilities.tris_tests_utils import *
 
 bot = MockBot()
 dispatcher = MockDispatcher(bot)
