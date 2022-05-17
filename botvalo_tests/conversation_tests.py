@@ -11,8 +11,6 @@ from botvalo_tests.framework.mockcontext import MockContext
 from botvalo_tests.framework.mockdatabase import MockDatabase
 from botvalo_tests.framework.mockdispatcher import MockDispatcher
 from botvalo_tests.framework.mockupdate import MockUpdate
-# noinspection PyUnresolvedReferences
-from botvalo_tests.test_utilities.common_fixtures import *
 from botvalo_tests.test_utilities.common_tests_utils import *
 
 bot = MockBot()
