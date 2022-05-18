@@ -10,14 +10,14 @@ from bot_components.db.db_manager import Database as Db
 
 
 class AntiCioppyPolicy:
-    timeout_words_list = list()
+    timeout_words_list = []
     initial_ban_time_in_minutes: int = 8
 
     timeout_alerts = 0
     CIOPPY_USER_ID = 364369396
 
-    BAN_MESSAGE = "Bannato Cioppy per {minutes} minuti!"
-    BAN_ERROR_MESSAGE = "Non sono riuscito a bannare quel troione di Cioppy. Forse mi mancano dei permessi?"
+    BAN_MESSAGE = "Bannato cioppy per {minutes} minuti!"
+    BAN_ERROR_MESSAGE = "Non sono riuscito a bannare quel troione di cioppy. Forse mi mancano dei permessi?"
     WARN_MESSAGE = "E basta co' sti discorsi! Avvertimento {current_warns} di {max_warns}, e poi ti banno!"
 
     BAN_PRIVATE_MESSAGE = "Sei stato bannato per {minutes} minuti per aver fatto discorsi del cazzo, come al solito. " \
@@ -58,14 +58,14 @@ class AntiCioppyPolicy:
             cls.send_error_message(chat)
 
     @classmethod
-    def _timeout_member(cls, chat, cioppy_user):
+    def _timeout_member(cls, chat, user):
         ban_minutes = cls.get_ban_minutes()
         unban_date = cls.get_unban_date(ban_minutes)
         cls.ban(chat, until_date=unban_date)
         cls.timeout_alerts = 0
         cls.send_ban_message_to_group(chat, ban_minutes)
-        cls.send_private_ban_message(cioppy_user, ban_minutes, unban_date)
-        cls.schedule_unban_message(cioppy_user, chat, ban_minutes)
+        cls.send_private_ban_message(user, ban_minutes, unban_date)
+        cls.schedule_unban_message(user, chat, ban_minutes)
         cls.increment_cioppy_bans()
 
     @classmethod
@@ -96,15 +96,15 @@ class AntiCioppyPolicy:
         chat.send_message(cls.BAN_MESSAGE.format(minutes=ban_minutes))
 
     @classmethod
-    def send_private_ban_message(cls, cioppy_user, ban_minutes, unban_date):
-        cioppy_user.send_message(cls.BAN_PRIVATE_MESSAGE.format(minutes=ban_minutes,
-                                                                date=unban_date.strftime("%d/%m"),
-                                                                hour=unban_date.strftime("%H:%M")))
+    def send_private_ban_message(cls, user, ban_minutes, unban_date):
+        user.send_message(cls.BAN_PRIVATE_MESSAGE.format(minutes=ban_minutes,
+                                                         date=unban_date.strftime("%d/%m"),
+                                                         hour=unban_date.strftime("%H:%M")))
 
     @classmethod
-    def schedule_unban_message(cls, cioppy_user, chat: Chat, ban_minutes):
+    def schedule_unban_message(cls, user, chat: Chat, ban_minutes):
         invite_link = chat.invite_link or chat.create_invite_link(member_limit=1).invite_link
-        threading.Timer(ban_minutes * 60, cioppy_user.send_message, args=[
+        threading.Timer(ban_minutes * 60, user.send_message, args=[
             cls.UNBAN_PRIVATE_MESSAGE.format(
                 group_name=chat.title,
                 link=invite_link)
