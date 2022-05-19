@@ -110,14 +110,19 @@ class FirebaseStorage(Database):
         words_list: list[str] = words_dict['blacklisted_words']
         return words_list
 
-    def get_cioppy_bans(self) -> int:
+    def _get_timeout_data(self, key):
         doc_data = self._get_config_doc_as_dict("timeout")
-        return doc_data['bans']
+        return doc_data[key]
+
+    def get_cioppy_bans(self) -> int:
+        return self._get_timeout_data('bans')
 
     def set_cioppy_bans(self, ban_times):
         doc = self._get_config_doc("timeout")
         doc.update({"bans": ban_times})
 
     def get_cioppy_max_alerts(self) -> int:
-        doc_data = self._get_config_doc_as_dict("timeout")
-        return doc_data['max_alerts']
+        return self._get_timeout_data('max_alerts')
+
+    def get_minimum_voters_required_to_ban_cioppy(self) -> int:
+        return self._get_timeout_data('min_voters_required')

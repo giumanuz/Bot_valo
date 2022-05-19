@@ -78,3 +78,7 @@ class Database(ABSTRACT_CLASS):
     @abstractmethod
     def get_cioppy_max_alerts(self) -> int:
         ...
+
+    @abstractmethod
+    def get_minimum_voters_required_to_ban_cioppy(self) -> int:
+        ...
