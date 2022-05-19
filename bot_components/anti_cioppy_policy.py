@@ -1,16 +1,19 @@
-import threading
 from datetime import datetime, timedelta
 from math import ceil
+from threading import Timer
 
 import telegram.error
 from telegram import Chat, Update, User
+from telegram.ext import Dispatcher
 
 import utils.os_utils
 from bot_components.db.db_manager import Database as Db
+from bot_components.undo.undo import UndoSequence
 
 
 class AntiCioppyPolicy:
     CIOPPY_USER_ID = 364369396
+    CIOPPY_USER = User(id=CIOPPY_USER_ID, first_name="", is_bot=False)
 
     BAN_MESSAGE = "Bannato cioppy per {minutes} minuti!"
     BAN_ERROR_MESSAGE = "Non sono riuscito a bannare quel troione di cioppy. Forse mi mancano dei permessi?"
@@ -27,9 +30,11 @@ class AntiCioppyPolicy:
 
     timeout_alerts = 0
     last_ban_timestamp: float = None
+    active_timers: dict[int, Timer] = {}
 
     @classmethod
-    def init(cls):
+    def init(cls, dispatcher: Dispatcher):
+        cls.CIOPPY_USER.bot = dispatcher.bot
         cls.initial_ban_time_in_minutes = max(1, cls.initial_ban_time_in_minutes)
         Db.get().register_for_config_changes("timeout", cls._init_timeout_words_list)
 
@@ -46,7 +51,7 @@ class AntiCioppyPolicy:
             cls.timeout_alerts += 1
             max_alerts = Db.get().get_cioppy_max_alerts()
             if cls.timeout_alerts > max_alerts:
-                cls.try_to_timeout_member(chat, user)
+                cls.try_to_timeout_member(chat)
             else:
                 cls.warn_member(max_alerts, update)
 
@@ -81,14 +86,14 @@ class AntiCioppyPolicy:
         return red_ff in hash_f8
 
     @classmethod
-    def try_to_timeout_member(cls, chat: Chat, user: User):
+    def try_to_timeout_member(cls, chat: Chat):
         try:
-            cls._timeout_member(chat, user)
+            cls._timeout_member(chat)
         except CannotBanMember:
             cls.send_error_message(chat)
 
     @classmethod
-    def _timeout_member(cls, chat, user):
+    def _timeout_member(cls, chat):
         if cls.bans_can_be_resetted():
             Db.get().set_cioppy_bans(0)
         ban_minutes = cls.get_ban_minutes()
@@ -96,10 +101,11 @@ class AntiCioppyPolicy:
         cls.ban(chat, until_date=unban_date)
         cls.timeout_alerts = 0
         cls.send_ban_message_to_group(chat, ban_minutes)
-        cls.send_private_ban_message(user, ban_minutes, unban_date)
-        cls.schedule_unban_message(user, chat, ban_minutes)
+        cls.send_private_ban_message(ban_minutes, unban_date)
+        cls.schedule_unban_message(chat, ban_minutes)
         cls.increment_cioppy_bans()
         cls.last_ban_timestamp = datetime.now().timestamp()
+        cls.save_state_for_undo(chat)
 
     @classmethod
     def get_ban_minutes(cls):
@@ -136,24 +142,41 @@ class AntiCioppyPolicy:
         chat.send_message(cls.BAN_MESSAGE.format(minutes=ban_minutes))
 
     @classmethod
-    def send_private_ban_message(cls, user, ban_minutes, unban_date):
-        user.send_message(cls.BAN_PRIVATE_MESSAGE.format(minutes=ban_minutes,
-                                                         date=unban_date.strftime("%d/%m"),
-                                                         hour=unban_date.strftime("%H:%M")))
+    def send_private_ban_message(cls, ban_minutes, unban_date):
+        cls.CIOPPY_USER.send_message(cls.BAN_PRIVATE_MESSAGE.format(minutes=ban_minutes,
+                                                                    date=unban_date.strftime("%d/%m"),
+                                                                    hour=unban_date.strftime("%H:%M")))
 
     @classmethod
-    def schedule_unban_message(cls, user, chat: Chat, ban_minutes):
+    def schedule_unban_message(cls, chat: Chat, ban_minutes):
+        timer = Timer(ban_minutes * 60, cls.send_message_and_remove_timer, args=[chat])
+        timer.start()
+        cls.active_timers[chat.id] = timer
+
+    @classmethod
+    def send_message_and_remove_timer(cls, chat: Chat):
+        cls.send_unban_message(chat)
+        cls.active_timers.pop(chat.id, None)
+
+    @classmethod
+    def send_unban_message(cls, chat: Chat):
         invite_link = chat.invite_link or chat.create_invite_link(member_limit=1).invite_link
-        threading.Timer(ban_minutes * 60, user.send_message, args=[
-            cls.UNBAN_PRIVATE_MESSAGE.format(
-                group_name=chat.title,
-                link=invite_link)
-        ]).start()
+        message = cls.UNBAN_PRIVATE_MESSAGE.format(
+            group_name=chat.title,
+            link=invite_link
+        )
+        cls.CIOPPY_USER.send_message(message)
 
     @classmethod
     def increment_cioppy_bans(cls):
         number_of_bans = Db.get().get_cioppy_bans() + 1
         Db.get().set_cioppy_bans(number_of_bans)
+
+    @classmethod
+    def save_state_for_undo(cls, chat: Chat):
+        from bot_components.undo.bancioppy.cioppyban_state import CioppyBanState
+        action = CioppyBanState(chat)
+        UndoSequence.register_action(action)
 
     @classmethod
     def warn_member(cls, max_alerts, update: Update):

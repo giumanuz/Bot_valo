@@ -1,31 +1,28 @@
 from threading import Timer
 
 import telegram
-from telegram import User, Update, Chat
+from telegram import Update, Chat
 from telegram.ext import Dispatcher, CommandHandler
 
 from bot_components.anti_cioppy_policy import AntiCioppyPolicy as Acp
 from bot_components.db.db_manager import Database
+from bot_components.undo.undo import UndoSequence
 
 
 class BanCioppyCommand:
-    CIOPPY_USER = User(id=Acp.CIOPPY_USER_ID,
-                       first_name="",
-                       is_bot=False)
-
-    current_voters: dict[int, list[int]] = {}
+    current_voters: dict[int, set[int]] = {}
     active_reset_timers: dict[int, Timer] = {}
 
     required_voters_to_ban = 4
     reset_voters_after_seconds = 200
 
     VOTANTS_MESSAGE = "Hai votato per bannare cioppy! Voti {cur_voters} su {min_voters}"
+    REVOKED_VOTE_MESSAGE = "Hai ritirato il tuo voto! Ora i voti sono {cur_voters} su {min_voters}"
 
     @classmethod
     def init(cls, dispatcher: Dispatcher):
         dispatcher.add_handler(CommandHandler("banCioppy", cls.ban_cioppy, run_async=True))
         Database.get().register_for_config_changes("timeout", cls.update_required_votants_to_ban)
-        cls.CIOPPY_USER.bot = dispatcher.bot
 
     @classmethod
     def update_required_votants_to_ban(cls):
@@ -38,12 +35,13 @@ class BanCioppyCommand:
         if not cls.cioppy_is_in_chat(chat):
             return
         user_id = update.effective_user.id
-        current_voters_on_chat = cls.current_voters.setdefault(chat.id, [])
+        current_voters_on_chat = cls.current_voters.setdefault(chat.id, set())
         if user_id in current_voters_on_chat:
             return
-        current_voters_on_chat.append(user_id)
+        current_voters_on_chat.add(user_id)
+        cls.register_action_for_undo(chat, user_id)
         if len(cls.current_voters[chat.id]) >= cls.required_voters_to_ban:
-            Acp.try_to_timeout_member(chat, cls.CIOPPY_USER)
+            Acp.try_to_timeout_member(chat)
             cls.stop_chat_timer(chat.id)
             cls.reset_voters(chat.id)
         else:
@@ -65,6 +63,12 @@ class BanCioppyCommand:
             return False
 
     @classmethod
+    def register_action_for_undo(cls, chat: Chat, voter_id: int):
+        from bot_components.undo.bancioppy.bancioppy_vote_state import BanCioppyVoteState
+        action = BanCioppyVoteState(chat, voter_id)
+        UndoSequence.register_action(action)
+
+    @classmethod
     def stop_chat_timer(cls, chat_id):
         if chat_id in cls.active_reset_timers:
             timer = cls.active_reset_timers[chat_id]
@@ -73,11 +77,20 @@ class BanCioppyCommand:
 
     @classmethod
     def send_current_voters_message(cls, chat: Chat):
-        message = cls.VOTANTS_MESSAGE.format(
-            cur_voters=len(cls.current_voters[chat.id]),
+        message = cls.format_voters_message(cls.VOTANTS_MESSAGE, chat.id)
+        chat.send_message(message)
+
+    @classmethod
+    def send_revoked_vote_message(cls, chat: Chat):
+        message = cls.format_voters_message(cls.REVOKED_VOTE_MESSAGE, chat.id)
+        chat.send_message(message)
+
+    @classmethod
+    def format_voters_message(cls, message: str, chat_id):
+        return message.format(
+            cur_voters=len(cls.current_voters[chat_id]),
             min_voters=cls.required_voters_to_ban
         )
-        chat.send_message(message)
 
     @classmethod
     def restart_timer(cls, chat_id):

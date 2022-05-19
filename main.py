@@ -17,6 +17,7 @@ from bot_components.menu import Menu
 from bot_components.prenotazioni import init_prenotazioni
 from bot_components.risposte import Risposte
 from bot_components.settings.settings import ChatSettings
+from bot_components.undo.undo import UndoSequence
 
 
 def main():
@@ -86,11 +87,12 @@ def init_bot_components(dispatcher):
     init_tris(dispatcher)
     init_snake(dispatcher)
     ChatSettings.init(dispatcher)
+    UndoSequence.init(dispatcher)
+    AntiCioppyPolicy.init(dispatcher)
 
     Risposte.init()
     Insulti.init()
     Foto.init()
-    AntiCioppyPolicy.init()
 
     add_message_handlers(dispatcher)
 
@@ -109,4 +111,3 @@ class ExitCode:
 
 if __name__ == '__main__':
     main()
-
