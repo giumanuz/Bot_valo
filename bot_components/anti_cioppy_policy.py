@@ -27,7 +27,7 @@ class AntiCioppyPolicy:
     @classmethod
     def init(cls):
         cls.initial_ban_time_in_minutes = max(1, cls.initial_ban_time_in_minutes)
-        Db.get().register_for_config_changes("timeout_sensitive_words", cls._init_timeout_words_list)
+        Db.get().register_for_config_changes("timeout", cls._init_timeout_words_list)
 
     @classmethod
     def _init_timeout_words_list(cls):
