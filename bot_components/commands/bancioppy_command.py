@@ -54,7 +54,13 @@ class BanCioppyCommand:
     def cioppy_is_in_chat(cls, chat: Chat) -> bool:
         try:
             m = chat.get_member(Acp.CIOPPY_USER_ID)
-            return bool(m)
+            if not m:
+                return False
+            match m.status:
+                case (m.LEFT | m.KICKED):
+                    return False
+                case _:
+                    return True
         except telegram.TelegramError:
             return False
 
