@@ -1,13 +1,15 @@
 from threading import Timer
 
+import telegram
 from telegram import User, Update, Chat
 from telegram.ext import Dispatcher, CommandHandler
 
-from bot_components.anti_cioppy_policy import AntiCioppyPolicy
+from bot_components.anti_cioppy_policy import AntiCioppyPolicy as Acp
+from bot_components.db.db_manager import Database
 
 
 class BanCioppyCommand:
-    CIOPPY_USER = User(id=AntiCioppyPolicy.CIOPPY_USER_ID,
+    CIOPPY_USER = User(id=Acp.CIOPPY_USER_ID,
                        first_name="",
                        is_bot=False)
 
@@ -17,29 +19,44 @@ class BanCioppyCommand:
     required_voters_to_ban = 4
     reset_voters_after_seconds = 200
 
-    VOTANTS_MESSAGE = f"Hai votato per bannare cioppy! Voti {{cur_voters}} su {required_voters_to_ban}"
+    VOTANTS_MESSAGE = "Hai votato per bannare cioppy! Voti {cur_voters} su {min_voters}"
 
     @classmethod
     def init(cls, dispatcher: Dispatcher):
         dispatcher.add_handler(CommandHandler("banCioppy", cls.ban_cioppy, run_async=True))
+        Database.get().register_for_config_changes("timeout", cls.update_required_votants_to_ban)
         cls.CIOPPY_USER.bot = dispatcher.bot
 
     @classmethod
+    def update_required_votants_to_ban(cls):
+        new_required_votants = Database.get().get_minimum_voters_required_to_ban_cioppy()
+        cls.required_voters_to_ban = new_required_votants
+
+    @classmethod
     def ban_cioppy(cls, update: Update, _):
-        print("gel")
         chat = update.effective_chat
+        if not cls.cioppy_is_in_chat(chat):
+            return
         user_id = update.effective_user.id
         current_voters_on_chat = cls.current_voters.setdefault(chat.id, [])
         if user_id in current_voters_on_chat:
             return
         current_voters_on_chat.append(user_id)
-        if len(current_voters_on_chat) >= cls.required_voters_to_ban:
-            AntiCioppyPolicy.try_to_timeout_member(chat, cls.CIOPPY_USER)
+        if len(cls.current_voters[chat.id]) >= cls.required_voters_to_ban:
+            Acp.try_to_timeout_member(chat, cls.CIOPPY_USER)
             cls.stop_chat_timer(chat.id)
-            cls.current_voters.pop(chat.id)
+            cls.reset_voters(chat.id)
         else:
             cls.send_current_voters_message(chat)
             cls.restart_timer(chat.id)
+
+    @classmethod
+    def cioppy_is_in_chat(cls, chat: Chat) -> bool:
+        try:
+            m = chat.get_member(Acp.CIOPPY_USER_ID)
+            return bool(m)
+        except telegram.TelegramError:
+            return False
 
     @classmethod
     def stop_chat_timer(cls, chat_id):
@@ -51,7 +68,8 @@ class BanCioppyCommand:
     @classmethod
     def send_current_voters_message(cls, chat: Chat):
         message = cls.VOTANTS_MESSAGE.format(
-            cur_voters=len(cls.current_voters[chat.id])
+            cur_voters=len(cls.current_voters[chat.id]),
+            min_voters=cls.required_voters_to_ban
         )
         chat.send_message(message)
 

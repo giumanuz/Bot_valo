@@ -1,5 +1,5 @@
 import threading
-from datetime import timedelta
+from datetime import datetime, timedelta
 from math import ceil
 
 import telegram.error
@@ -10,10 +10,6 @@ from bot_components.db.db_manager import Database as Db
 
 
 class AntiCioppyPolicy:
-    timeout_words_list = []
-    initial_ban_time_in_minutes: int = 8
-
-    timeout_alerts = 0
     CIOPPY_USER_ID = 364369396
 
     BAN_MESSAGE = "Bannato cioppy per {minutes} minuti!"
@@ -23,6 +19,14 @@ class AntiCioppyPolicy:
     BAN_PRIVATE_MESSAGE = "Sei stato bannato per {minutes} minuti per aver fatto discorsi del cazzo, come al solito. " \
                           "Sarai sbannato il {date} alle {hour}. Te lo ricorderò."
     UNBAN_PRIVATE_MESSAGE = "Sei stato sbannato dal gruppo {group_name}, prova a rientrare con questo link: {link}"
+
+    RESET_BANS_AFTER_DAYS = 3
+
+    timeout_words_list = []
+    initial_ban_time_in_minutes: int = 8
+
+    timeout_alerts = 0
+    last_ban_timestamp: float = None
 
     @classmethod
     def init(cls):
@@ -47,8 +51,34 @@ class AntiCioppyPolicy:
                 cls.warn_member(max_alerts, update)
 
     @classmethod
-    def contains_a_timeout_word(cls, text):
-        return any(e in text for e in cls.timeout_words_list)
+    def contains_a_timeout_word(cls, text: str):
+        adjusted_text = cls.adjust_text(text)
+        return any(cls.has_algorithm(adjusted_text, e) for e in cls.timeout_words_list)
+
+    @classmethod
+    def adjust_text(cls, text: str) -> str:
+        text = text.replace("1", "i") \
+            .replace("!", "i") \
+            .replace("2", "z") \
+            .replace("3", "e") \
+            .replace("4", "a") \
+            .replace("@", "a") \
+            .replace("$", "s") \
+            .replace("5", "s") \
+            .replace("7", "t") \
+            .replace("8", "b") \
+            .replace("k", "c") \
+            .replace("0", "o")
+        text = ''.join(s for s in text if s.isalnum())
+        return text
+
+    @classmethod
+    def has_algorithm(cls, text: str, word: str):
+        rdux_2 = ''.join(chr(5 + ord(c)) for c in text)
+        hash_f8 = ''.join(c for c in rdux_2 if c not in 'fjntz')
+        rdux_3 = ''.join(chr(5 + ord(c)) for c in word)
+        red_ff = ''.join(c for c in rdux_3 if c not in 'fjntz')
+        return red_ff in hash_f8
 
     @classmethod
     def try_to_timeout_member(cls, chat: Chat, user: User):
@@ -59,6 +89,8 @@ class AntiCioppyPolicy:
 
     @classmethod
     def _timeout_member(cls, chat, user):
+        if cls.bans_can_be_resetted():
+            Db.get().set_cioppy_bans(0)
         ban_minutes = cls.get_ban_minutes()
         unban_date = cls.get_unban_date(ban_minutes)
         cls.ban(chat, until_date=unban_date)
@@ -67,11 +99,19 @@ class AntiCioppyPolicy:
         cls.send_private_ban_message(user, ban_minutes, unban_date)
         cls.schedule_unban_message(user, chat, ban_minutes)
         cls.increment_cioppy_bans()
+        cls.last_ban_timestamp = datetime.now().timestamp()
 
     @classmethod
     def get_ban_minutes(cls):
         ban_times = Db.get().get_cioppy_bans() + 1
         return cls.increment_function(ban_times)
+
+    @classmethod
+    def bans_can_be_resetted(cls):
+        if not cls.last_ban_timestamp:
+            return False
+        time_diff = datetime.now() - datetime.fromtimestamp(cls.last_ban_timestamp)
+        return time_diff.days >= cls.RESET_BANS_AFTER_DAYS
 
     @classmethod
     def increment_function(cls, k) -> int:

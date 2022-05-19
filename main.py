@@ -26,7 +26,7 @@ def main():
 
     check_environment_variables(is_server)
 
-    logging.basicConfig(level=logging.WARNING)
+    logging.basicConfig(level=logging.INFO)
 
     BOT_TOKEN = environment_variables.get("BOT_TOKEN")
     BOT_TOKEN_LOCAL = environment_variables.get("BOT_TOKEN_LOCAL")
@@ -109,3 +109,4 @@ class ExitCode:
 
 if __name__ == '__main__':
     main()
+

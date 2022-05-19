@@ -77,3 +77,6 @@ class MockDatabase(Database):
 
     def get_cioppy_max_alerts(self) -> int:
         pass
+
+    def get_minimum_voters_required_to_ban_cioppy(self) -> int:
+        pass
