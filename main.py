@@ -2,7 +2,6 @@ import logging
 from os import environ as environment_variables
 
 from dotenv import load_dotenv
-from telegram import Bot
 from telegram.ext import Updater
 
 from bot_components.anti_cioppy_policy import AntiCioppyPolicy
@@ -22,7 +21,7 @@ from bot_components.settings.settings import ChatSettings
 
 def main():
     load_dotenv()
-    # SERVER_PORT = get_server_port()
+    SERVER_PORT = get_server_port()
 
     check_environment_variables()
 
@@ -36,18 +35,14 @@ def main():
     setup_db()
     init_bot_components(dispatcher)
 
-    bot: Bot = updater.bot
-    bot.send_message(147948029, "Reset")
-
     if 'ON_HEROKU' in environment_variables:
         print("SERVER")
-        # updater.start_webhook(
-        #     listen="0.0.0.0",
-        #     port=SERVER_PORT,
-        #     url_path=BOT_TOKEN,
-        #     webhook_url=f'https://botvalo01.herokuapp.com/{BOT_TOKEN}'
-        # )
-        updater.start_polling()
+        updater.start_webhook(
+            listen="0.0.0.0",
+            port=SERVER_PORT,
+            url_path=BOT_TOKEN,
+            webhook_url=f'https://botvalo01.herokuapp.com/{BOT_TOKEN}'
+        )
     else:
         print("LOCAL (testing)")
         updater.start_polling()
@@ -113,4 +108,3 @@ class ExitCode:
 
 if __name__ == '__main__':
     main()
-
