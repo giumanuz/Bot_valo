@@ -82,3 +82,11 @@ class Database(ABSTRACT_CLASS):
     @abstractmethod
     def get_minimum_voters_required_to_ban_cioppy(self) -> int:
         ...
+
+    @abstractmethod
+    def set_cioppy_reset_ban_timestamp(self, timestamp):
+        ...
+
+    @abstractmethod
+    def get_cioppy_reset_ban_timestamp(self) -> float:
+        ...

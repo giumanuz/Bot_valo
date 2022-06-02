@@ -17,7 +17,7 @@ class BanCioppyCommand:
     active_reset_timers: dict[int, Timer] = {}
 
     required_voters_to_ban = 4
-    reset_voters_after_seconds = 200
+    reset_voters_after_seconds = 720
 
     VOTANTS_MESSAGE = "Hai votato per bannare cioppy! Voti {cur_voters} su {min_voters}"
 

@@ -22,22 +22,20 @@ from bot_components.settings.settings import ChatSettings
 def main():
     load_dotenv()
     SERVER_PORT = get_server_port()
-    is_server = 'ON_HEROKU' in environment_variables
 
-    check_environment_variables(is_server)
+    check_environment_variables()
 
     logging.basicConfig(level=logging.INFO)
 
     BOT_TOKEN = environment_variables.get("BOT_TOKEN")
-    BOT_TOKEN_LOCAL = environment_variables.get("BOT_TOKEN_LOCAL")
 
-    updater = get_updater(BOT_TOKEN) if is_server else get_updater(BOT_TOKEN_LOCAL)
+    updater = get_updater(BOT_TOKEN)
     dispatcher = updater.dispatcher
 
     setup_db()
     init_bot_components(dispatcher)
 
-    if is_server:
+    if 'ON_HEROKU' in environment_variables:
         print("SERVER")
         updater.start_webhook(
             listen="0.0.0.0",
@@ -48,6 +46,7 @@ def main():
     else:
         print("LOCAL (testing)")
         updater.start_polling()
+
     updater.idle()
 
 
@@ -55,14 +54,14 @@ def get_server_port():
     return int(environment_variables.get('PORT', 8443))
 
 
-def check_environment_variables(is_server):
+def check_environment_variables():
     required_envs = ("FB_PROJECT_ID",
                      "FB_CREDENTIALS_KEY_ID",
                      "FB_CREDENTIALS_PRIVATE_KEY",
                      "FB_CLIENT_EMAIL",
                      "FB_CLIENT_ID",
                      "FB_BUCKET_NAME",
-                     "BOT_TOKEN" if is_server else "BOT_TOKEN_LOCAL")
+                     "BOT_TOKEN")
     error = False
     for env in required_envs:
         if env not in environment_variables:
@@ -109,4 +108,3 @@ class ExitCode:
 
 if __name__ == '__main__':
     main()
-
