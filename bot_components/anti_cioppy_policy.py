@@ -74,11 +74,9 @@ class AntiCioppyPolicy:
 
     @classmethod
     def has_algorithm(cls, text: str, word: str):
-        rdux_2 = ''.join(chr(5 + ord(c)) for c in text)
-        hash_f8 = ''.join(c for c in rdux_2 if c not in 'fjntz')
-        rdux_3 = ''.join(chr(5 + ord(c)) for c in word)
-        red_ff = ''.join(c for c in rdux_3 if c not in 'fjntz')
-        return red_ff in hash_f8
+        reduced_text = ''.join(c for c in text if c not in 'uaoie ')
+        reduced_word = ''.join(c for c in word if c not in 'uaoie ')
+        return reduced_word in reduced_text
 
     @classmethod
     def try_to_timeout_member(cls, chat: Chat, user: User):
