@@ -96,6 +96,8 @@ def init_bot_components(dispatcher):
 
     add_message_handlers(dispatcher)
 
+    CommandRegister.update_commands()
+
     logging.info("Init done.")
 
 

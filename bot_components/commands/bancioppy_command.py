@@ -1,4 +1,5 @@
 import random
+from datetime import datetime
 from threading import Timer
 
 import telegram
@@ -25,12 +26,15 @@ class BanCioppyCommand:
     GIFT_VOTE_MESSAGE = "Vi regalo un voto dai, oggi cioppy mi sta sul cazzo"
     GIFT_PROBABILITY = 0.10
 
+    _random: random.Random
+
     @classmethod
     def init(cls, dispatcher: Dispatcher):
         dispatcher.add_handler(CommandHandler("banCioppy", cls.vote_for_cioppy_ban, run_async=True))
         Database.get().register_for_config_changes("timeout", cls.update_required_votants_to_ban)
         cls.CIOPPY_USER.bot = dispatcher.bot
         CommandRegister.register_command("bancioppy", "Vota per bannare Cioppy dal gruppo, se presente.")
+        cls._random = random.Random(datetime.utcnow().timestamp())
 
     @classmethod
     def update_required_votants_to_ban(cls):
@@ -70,7 +74,7 @@ class BanCioppyCommand:
 
     @classmethod
     def add_gift_ban_with_probability(cls, chat):
-        if random.random() < cls.GIFT_PROBABILITY:
+        if cls._random.random() < cls.GIFT_PROBABILITY:
             cls.current_voters[chat.id].add(-1)
             chat.send_message(cls.GIFT_VOTE_MESSAGE)
 
