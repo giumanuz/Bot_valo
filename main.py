@@ -6,6 +6,7 @@ from telegram.ext import Updater
 
 from bot_components.anti_cioppy_policy import AntiCioppyPolicy
 from bot_components.commands.bancioppy_command import BanCioppyCommand
+from bot_components.commands_registration import CommandRegister
 from bot_components.db.db_manager import Database
 from bot_components.db.firebase_manager import FirebaseStorage
 from bot_components.foto import Foto
@@ -78,6 +79,8 @@ def setup_db():
 
 def init_bot_components(dispatcher):
     logging.info("Init components...")
+
+    CommandRegister.init(dispatcher)
 
     Menu.init(dispatcher)
     BanCioppyCommand.init(dispatcher)

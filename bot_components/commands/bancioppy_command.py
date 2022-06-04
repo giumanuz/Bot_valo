@@ -6,6 +6,7 @@ from telegram import User, Update, Chat
 from telegram.ext import Dispatcher, CommandHandler
 
 from bot_components.anti_cioppy_policy import AntiCioppyPolicy as Acp
+from bot_components.commands_registration import CommandRegister
 from bot_components.db.db_manager import Database
 
 
@@ -29,6 +30,7 @@ class BanCioppyCommand:
         dispatcher.add_handler(CommandHandler("banCioppy", cls.vote_for_cioppy_ban, run_async=True))
         Database.get().register_for_config_changes("timeout", cls.update_required_votants_to_ban)
         cls.CIOPPY_USER.bot = dispatcher.bot
+        CommandRegister.register_command("bancioppy", "Vota per bannare Cioppy dal gruppo, se presente.")
 
     @classmethod
     def update_required_votants_to_ban(cls):
