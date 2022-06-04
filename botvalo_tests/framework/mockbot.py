@@ -27,3 +27,6 @@ class MockBot:
     def reset_data(self):
         self._result = []
         self.response_message_id = -1
+
+    def set_my_commands(self, commands_list: list[tuple[str, str]]):
+        pass

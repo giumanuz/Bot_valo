@@ -1,8 +1,10 @@
 import pytest
 import telegram.error
 
+from bot_components.commands_registration import CommandRegister
 from bot_components.foto import Foto
 from bot_components.menu import Menu
+from botvalo_tests.framework.mockbot import MockBot
 from botvalo_tests.framework.mockchat import MockChat
 from botvalo_tests.framework.mockdispatcher import MockDispatcher
 from botvalo_tests.framework.mockmessage import MockMessage
@@ -10,7 +12,8 @@ from botvalo_tests.framework.mockmessage import MockMessage
 
 def test_Menu_shouldAddCommandHandler_WhenInit():
     from telegram.ext import CommandHandler
-    d = MockDispatcher(None)
+    d = MockDispatcher(MockBot())
+    CommandRegister.init(d)
     Menu.init(d)
     assert len(d.handlers) == 1
     ch: CommandHandler = d.handlers[0]

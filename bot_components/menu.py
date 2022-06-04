@@ -1,6 +1,7 @@
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Update
 from telegram.ext import CommandHandler, Dispatcher
 
+from bot_components.commands_registration import CommandRegister
 from utils.lib_utils import FlowMatrix
 
 
@@ -13,6 +14,7 @@ class Menu:
     @classmethod
     def init(cls, dispatcher: Dispatcher):
         dispatcher.add_handler(CommandHandler("menu", Menu.show, run_async=True))
+        CommandRegister.register_command("menu", "Apre un menu dove sono possibili alcune operazioni.")
 
     @classmethod
     def show(cls, update: Update, _=None):
