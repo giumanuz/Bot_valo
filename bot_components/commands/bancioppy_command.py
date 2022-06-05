@@ -24,7 +24,7 @@ class BanCioppyCommand:
 
     VOTANTS_MESSAGE = "Hai votato per bannare cioppy! Voti {cur_voters} su {min_voters}"
     GIFT_VOTE_MESSAGE = "Vi regalo un voto dai, oggi cioppy mi sta sul cazzo"
-    GIFT_PROBABILITY = 0.10
+    GIFT_PROBABILITY = 0.08
 
     _random: random.Random
 
@@ -74,7 +74,7 @@ class BanCioppyCommand:
 
     @classmethod
     def add_gift_ban_with_probability(cls, chat):
-        if cls._random.random() < cls.GIFT_PROBABILITY:
+        if cls.current_voters[chat.id] == cls.required_voters_to_ban - 1 and random.random() < cls.GIFT_PROBABILITY:
             cls.current_voters[chat.id].add(-1)
             chat.send_message(cls.GIFT_VOTE_MESSAGE)
 
