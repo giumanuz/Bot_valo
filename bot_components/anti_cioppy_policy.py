@@ -102,7 +102,7 @@ class AntiCioppyPolicy:
     @classmethod
     def decrease_ban_count_if_necessary(cls):
         db = Db.get()
-        last_ban_reset = datetime.fromtimestamp(db.get_cioppy_reset_ban_timestamp())
+        last_ban_reset = datetime.fromtimestamp(db.get_cioppy_decrease_ban_timestamp())
         elapsed_time = datetime.utcnow() - last_ban_reset
         bans_to_remove = elapsed_time.days // cls.DECREASE_BANS_AFTER_DAYS
         if bans_to_remove == 0:
@@ -110,7 +110,7 @@ class AntiCioppyPolicy:
         current_bans_count = db.get_cioppy_bans()
         new_ban_count = max(0, current_bans_count - bans_to_remove)
         db.set_cioppy_bans(new_ban_count)
-        db.set_cioppy_reset_ban_timestamp(datetime.utcnow().timestamp())
+        db.set_cioppy_decrease_ban_timestamp(datetime.utcnow().timestamp())
 
     @classmethod
     def increment_function(cls, k) -> int:

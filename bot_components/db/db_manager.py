@@ -84,9 +84,9 @@ class Database(ABSTRACT_CLASS):
         ...
 
     @abstractmethod
-    def set_cioppy_reset_ban_timestamp(self, timestamp):
+    def set_cioppy_decrease_ban_timestamp(self, timestamp):
         ...
 
     @abstractmethod
-    def get_cioppy_reset_ban_timestamp(self) -> float:
+    def get_cioppy_decrease_ban_timestamp(self) -> float:
         ...
