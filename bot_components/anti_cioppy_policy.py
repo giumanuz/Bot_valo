@@ -88,7 +88,7 @@ class AntiCioppyPolicy:
         cls.decrease_ban_count_if_necessary()
         ban_minutes = cls.get_ban_minutes()
         unban_date = cls.get_unban_date(ban_minutes)
-        cls.ban_cioppy(chat, until_date=unban_date)
+        cls.ban_user(user.id, chat, until_date=unban_date)
         cls.timeout_alerts = 0
         cls.send_ban_message_to_group(chat, ban_minutes)
         cls.send_private_ban_message(chat, user, ban_minutes, unban_date)
@@ -122,9 +122,9 @@ class AntiCioppyPolicy:
         return time_now + timedelta(minutes=minutes)
 
     @classmethod
-    def ban_cioppy(cls, chat: Chat, until_date):
+    def ban_user(cls, user: User, chat: Chat, until_date):
         try:
-            success = chat.ban_member(cls.CIOPPY_USER_ID, until_date=until_date)
+            success = chat.ban_member(user.id, until_date=until_date)
             if not success:
                 raise CannotBanMember()
         except telegram.error.BadRequest:
@@ -139,7 +139,7 @@ class AntiCioppyPolicy:
         invite_link = chat.invite_link or chat.create_invite_link(member_limit=1).invite_link
         user.send_message(cls.BAN_PRIVATE_MESSAGE
                           .format(minutes=ban_minutes,
-                                  date=unban_date.strftime("%d/%m"),
+                                  date=unban_date.strftime("%dice/%m"),
                                   hour=unban_date.strftime("%H:%M"),
                                   link=invite_link),
                           parse_mode=telegram.parsemode.ParseMode.MARKDOWN_V2)
