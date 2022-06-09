@@ -20,7 +20,7 @@ class AntiCioppyPolicy:
                           " come al solito\\. Sarai sbannato il {date} alle {hour}\\." \
                           " Potrai usare [questo link]({link}) per rientrare\\."
 
-    RESET_BANS_AFTER_DAYS = 3
+    DECREASE_BANS_AFTER_DAYS = 2
 
     timeout_words_list = []
     initial_ban_time_in_minutes: int = 8  # must be >= 1
@@ -85,8 +85,7 @@ class AntiCioppyPolicy:
 
     @classmethod
     def _timeout_member(cls, chat, user):
-        if cls.bans_can_be_resetted():
-            Db.get().set_cioppy_bans(0)
+        cls.decrease_ban_count_if_necessary()
         ban_minutes = cls.get_ban_minutes()
         unban_date = cls.get_unban_date(ban_minutes)
         cls.ban_cioppy(chat, until_date=unban_date)
@@ -101,14 +100,17 @@ class AntiCioppyPolicy:
         return cls.increment_function(ban_times)
 
     @classmethod
-    def bans_can_be_resetted(cls):
-        last_ban_reset = datetime.fromtimestamp(Db.get().get_cioppy_reset_ban_timestamp())
-        time_diff = datetime.utcnow() - last_ban_reset
-        if time_diff.days >= cls.RESET_BANS_AFTER_DAYS:
-            Db.get().set_cioppy_reset_ban_timestamp(datetime.utcnow().timestamp())
-            return True
-        else:
-            return False
+    def decrease_ban_count_if_necessary(cls):
+        db = Db.get()
+        last_ban_reset = datetime.fromtimestamp(db.get_cioppy_reset_ban_timestamp())
+        elapsed_time = datetime.utcnow() - last_ban_reset
+        bans_to_remove = elapsed_time.days // cls.DECREASE_BANS_AFTER_DAYS
+        if bans_to_remove == 0:
+            return
+        current_bans_count = db.get_cioppy_bans()
+        new_ban_count = max(0, current_bans_count - bans_to_remove)
+        db.set_cioppy_bans(new_ban_count)
+        db.set_cioppy_reset_ban_timestamp(datetime.utcnow().timestamp())
 
     @classmethod
     def increment_function(cls, k) -> int:
