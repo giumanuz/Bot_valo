@@ -127,9 +127,9 @@ class FirebaseStorage(Database):
     def get_minimum_voters_required_to_ban_cioppy(self) -> int:
         return self._get_timeout_data('min_voters_required')
 
-    def set_cioppy_reset_ban_timestamp(self, timestamp):
+    def set_cioppy_decrease_ban_timestamp(self, timestamp):
         doc = self._get_config_doc("timeout")
-        doc.update({"ban_reset_timestamp": timestamp})
+        doc.update({"ban_decrease_timestamp": timestamp})
 
-    def get_cioppy_reset_ban_timestamp(self) -> float:
-        return self._get_timeout_data('ban_reset_timestamp')
+    def get_cioppy_decrease_ban_timestamp(self) -> float:
+        return self._get_timeout_data('ban_decrease_timestamp')

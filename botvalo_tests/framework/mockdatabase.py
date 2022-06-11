@@ -81,8 +81,8 @@ class MockDatabase(Database):
     def get_minimum_voters_required_to_ban_cioppy(self) -> int:
         pass
 
-    def set_cioppy_reset_ban_timestamp(self, timestamp):
+    def set_cioppy_decrease_ban_timestamp(self, timestamp):
         pass
 
-    def get_cioppy_reset_ban_timestamp(self) -> float:
+    def get_cioppy_decrease_ban_timestamp(self) -> float:
         pass
