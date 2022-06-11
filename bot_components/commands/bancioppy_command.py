@@ -1,16 +1,14 @@
 import random
-import threading
-from datetime import datetime, timedelta
+from datetime import datetime
 from threading import Timer
 
 import telegram
 from telegram import User, Update, Chat
 from telegram.ext import Dispatcher, CommandHandler
 
-from bot_components.anti_cioppy_policy import AntiCioppyPolicy as Acp, CannotBanMember
+from bot_components.anti_cioppy_policy import AntiCioppyPolicy as Acp
 from bot_components.commands_registration import CommandRegister
 from bot_components.db.db_manager import Database
-from utils.os_utils import get_current_local_datetime
 
 
 class BanCioppyCommand:
@@ -18,7 +16,7 @@ class BanCioppyCommand:
                        first_name="",
                        is_bot=False)
 
-    current_voters: dict[int, list[User]] = {}
+    current_voters: dict[int, set[int]] = {}
     active_reset_timers: dict[int, Timer] = {}
 
     required_voters_to_ban = 4
@@ -27,8 +25,6 @@ class BanCioppyCommand:
     VOTANTS_MESSAGE = "Hai votato per bannare cioppy! Voti {cur_voters} su {min_voters}"
     GIFT_VOTE_MESSAGE = "Vi regalo un voto dai, oggi cioppy mi sta sul cazzo"
     GIFT_PROBABILITY = 0.08
-
-    TWIST_PROBABILITY = 1.00  # TODO: change probability
 
     _random: random.Random
 
@@ -50,52 +46,17 @@ class BanCioppyCommand:
         chat = update.effective_chat
         if not cls.cioppy_is_in_chat(chat):
             return
-        user = update.effective_user
-        current_voters_on_chat = cls.current_voters.setdefault(chat.id, [])
-        if user in current_voters_on_chat:
+        user_id = update.effective_user.id
+        current_voters_on_chat = cls.current_voters.setdefault(chat.id, set())
+        if user_id in current_voters_on_chat:
             return
-        current_voters_on_chat.append(user)
+        current_voters_on_chat.add(user_id)
         cls.send_current_voters_message(chat)
         cls.add_gift_ban_with_probability(chat)
-        if len(cls.current_voters[chat.id]) >= 1:  # cls.required_voters_to_ban:
-            if cls.is_twist() and cls.required_voters_to_ban >= 6:
-                cls.twist(chat)
-            else:
-                cls.ban_user_and_reset_voters(chat, cls.CIOPPY_USER)
+        if len(cls.current_voters[chat.id]) >= cls.required_voters_to_ban:
+            cls.ban_cioppy_and_reset_voters(chat)
         else:
             cls.restart_timer(chat.id)
-
-    @classmethod
-    def is_twist(cls):
-        return random.random() < cls.TWIST_PROBABILITY
-
-    @classmethod
-    def twist(cls, chat: Chat):
-        chat.send_message("Twist! Mo viene bannato uno dei votanti!")
-        dice_value = chat.send_dice(emoji=telegram.constants.DICE_DICE).dice.value
-        user_to_ban = cls.current_voters[chat.id][dice_value - 1]
-        cls.stop_chat_timer(chat.id)
-        cls.reset_voters(chat.id)
-        threading.Timer(10, cls.twist_ban_and_send_message, [chat, user_to_ban]).start()
-
-    @classmethod
-    def twist_ban_and_send_message(cls, chat: Chat, user):
-        if cls.user_is_admin(chat, user):
-            chat.send_message("Purtroppo il malcapitato è un admin, sarà per la prossima!")
-            return
-
-        time_now = get_current_local_datetime()
-        unban_date = time_now + timedelta(minutes=20)
-        try:
-            chat.send_message(f"Eh eh eh, addio {user}!")
-            Acp.ban_user(user, chat, unban_date)
-        except CannotBanMember:
-            chat.send_message("E invece ti è andata bene, a quanto pare non posso bannarti!")
-
-    @classmethod
-    def user_is_admin(cls, chat: Chat, user: User) -> bool:
-        chat_admins = chat.get_administrators()
-        return user in (member.user for member in chat_admins)
 
     @classmethod
     def cioppy_is_in_chat(cls, chat: Chat) -> bool:
@@ -113,14 +74,13 @@ class BanCioppyCommand:
 
     @classmethod
     def add_gift_ban_with_probability(cls, chat):
-        if cls.current_voters[chat.id] == cls.required_voters_to_ban - 1 \
-                and random.random() < cls.GIFT_PROBABILITY:
-            cls.current_voters[chat.id].append(-1)
+        if cls.current_voters[chat.id] == cls.required_voters_to_ban - 1 and random.random() < cls.GIFT_PROBABILITY:
+            cls.current_voters[chat.id].add(-1)
             chat.send_message(cls.GIFT_VOTE_MESSAGE)
 
     @classmethod
-    def ban_user_and_reset_voters(cls, chat, user):
-        Acp.try_to_timeout_member(chat, user)
+    def ban_cioppy_and_reset_voters(cls, chat):
+        Acp.try_to_timeout_member(chat, cls.CIOPPY_USER)
         cls.stop_chat_timer(chat.id)
         cls.reset_voters(chat.id)
 
