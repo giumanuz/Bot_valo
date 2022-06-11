@@ -1,11 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from math import ceil
 
 import telegram.error
 from telegram import Chat, Update, User
 
+import utils.os_utils
 from bot_components.db.db_manager import Database as Db
-from utils.telegram_utils import ban_user, CannotBanMember
 
 
 class AntiCioppyPolicy:
@@ -84,13 +84,14 @@ class AntiCioppyPolicy:
             cls.send_error_message(chat)
 
     @classmethod
-    def _timeout_member(cls, chat, user, minutes):
+    def _timeout_member(cls, chat, user):
         cls.decrease_ban_count_if_necessary()
         ban_minutes = cls.get_ban_minutes()
-        ban_user(user.id, chat, minutes=minutes)
+        unban_date = cls.get_unban_date(ban_minutes)
+        cls.ban_user(user.id, chat, until_date=unban_date)
         cls.timeout_alerts = 0
         cls.send_ban_message_to_group(chat, ban_minutes)
-        cls.send_private_ban_message(chat, user, ban_minutes)
+        cls.send_private_ban_message(chat, user, ban_minutes, unban_date)
         cls.increment_cioppy_bans()
 
     @classmethod
@@ -116,6 +117,20 @@ class AntiCioppyPolicy:
         return ceil(cls.initial_ban_time_in_minutes * (k ** 1.5))
 
     @classmethod
+    def get_unban_date(cls, minutes):
+        time_now = utils.os_utils.get_current_local_datetime()
+        return time_now + timedelta(minutes=minutes)
+
+    @classmethod
+    def ban_user(cls, user: User, chat: Chat, until_date):
+        try:
+            success = chat.ban_member(user.id, until_date=until_date)
+            if not success:
+                raise CannotBanMember()
+        except telegram.error.BadRequest:
+            raise CannotBanMember()
+
+    @classmethod
     def send_ban_message_to_group(cls, chat, ban_minutes):
         chat.send_message(cls.BAN_MESSAGE.format(minutes=ban_minutes))
 
@@ -124,7 +139,7 @@ class AntiCioppyPolicy:
         invite_link = chat.invite_link or chat.create_invite_link(member_limit=1).invite_link
         user.send_message(cls.BAN_PRIVATE_MESSAGE
                           .format(minutes=ban_minutes,
-                                  date=unban_date.strftime("%d/%m"),
+                                  date=unban_date.strftime("%dice/%m"),
                                   hour=unban_date.strftime("%H:%M"),
                                   link=invite_link),
                           parse_mode=telegram.parsemode.ParseMode.MARKDOWN_V2)
@@ -145,3 +160,7 @@ class AntiCioppyPolicy:
     @classmethod
     def send_error_message(cls, chat):
         chat.send_message(cls.BAN_ERROR_MESSAGE)
+
+
+class CannotBanMember(Exception):
+    pass

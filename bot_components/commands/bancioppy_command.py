@@ -1,6 +1,6 @@
 import random
 import threading
-from datetime import datetime
+from datetime import datetime, timedelta
 from threading import Timer
 
 import telegram
@@ -10,7 +10,7 @@ from telegram.ext import Dispatcher, CommandHandler
 from bot_components.anti_cioppy_policy import AntiCioppyPolicy as Acp, CannotBanMember
 from bot_components.commands_registration import CommandRegister
 from bot_components.db.db_manager import Database
-from utils.telegram_utils import ban_user
+from utils.os_utils import get_current_local_datetime
 
 
 class BanCioppyCommand:
@@ -57,7 +57,7 @@ class BanCioppyCommand:
         current_voters_on_chat.append(user)
         cls.send_current_voters_message(chat)
         cls.add_gift_ban_with_probability(chat)
-        if len(cls.current_voters[chat.id]) >= cls.required_voters_to_ban:
+        if len(cls.current_voters[chat.id]) >= 1:  # cls.required_voters_to_ban:
             if cls.is_twist() and cls.required_voters_to_ban >= 6:
                 cls.twist(chat)
             else:
@@ -84,9 +84,11 @@ class BanCioppyCommand:
             chat.send_message("Purtroppo il malcapitato è un admin, sarà per la prossima!")
             return
 
+        time_now = get_current_local_datetime()
+        unban_date = time_now + timedelta(minutes=20)
         try:
             chat.send_message(f"Eh eh eh, addio {user}!")
-            ban_user(user, chat, minutes=20)
+            Acp.ban_user(user, chat, unban_date)
         except CannotBanMember:
             chat.send_message("E invece ti è andata bene, a quanto pare non posso bannarti!")
 
@@ -113,7 +115,7 @@ class BanCioppyCommand:
     def add_gift_ban_with_probability(cls, chat):
         if cls.current_voters[chat.id] == cls.required_voters_to_ban - 1 \
                 and random.random() < cls.GIFT_PROBABILITY:
-            cls.current_voters[chat.id].append(User(-1, "", True))
+            cls.current_voters[chat.id].append(-1)
             chat.send_message(cls.GIFT_VOTE_MESSAGE)
 
     @classmethod
