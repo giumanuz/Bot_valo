@@ -15,6 +15,7 @@ from bot_components.games.tris import init_tris
 from bot_components.gestore import add_message_handlers
 from bot_components.insulti import Insulti
 from bot_components.menu import Menu
+from bot_components.ping_bot import PingBot
 from bot_components.prenotazioni import init_prenotazioni
 from bot_components.risposte import Risposte
 from bot_components.settings.settings import ChatSettings
@@ -88,6 +89,7 @@ def init_bot_components(dispatcher):
     init_tris(dispatcher)
     init_snake(dispatcher)
     ChatSettings.init(dispatcher)
+    PingBot.init(dispatcher)
 
     Risposte.init()
     Insulti.init()
@@ -95,6 +97,13 @@ def init_bot_components(dispatcher):
     AntiCioppyPolicy.init()
 
     add_message_handlers(dispatcher)
+
+    damore_ping = PingBot(
+        "https://docs.google.com/spreadsheets/d/e/2PACX-1vTZQrxTYwVsR9HfGg9wyIUIW_TExTaHl9K6gWgTevBx8sC4rQc_V7o9jxDFvHp7W8sW0w3mGpddb8xm/pubhtml",
+        interval=10,
+        alert_text="D'amore ha aggiornato! {url}")
+    damore_ping.register_chat(-1001791043703)
+    damore_ping.activate()
 
     CommandRegister.update_commands()
 
