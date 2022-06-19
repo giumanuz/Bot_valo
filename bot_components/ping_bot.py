@@ -12,6 +12,7 @@ class PingBot:
     SAVED_RESPONSE_FILENAME = "pingbot_res_{id}.html"
     DEFAULT_ALERT_TEXT = "L'url è stato aggiornato! {url}"
     NONCE_PATTERN = re.compile(r'nonce=".*?"')
+    SCRIPT_PATTERN = re.compile(r'<script.*?>(.|\n)*?</script>')
 
     _bot: telegram.Bot
     _random = random.Random(145)
@@ -80,4 +81,5 @@ class PingBot:
 
     @classmethod
     def normalize_html(cls, html: str):
-        return re.sub(cls.NONCE_PATTERN, '', html)
+        nonce_free_text = re.sub(cls.NONCE_PATTERN, '', html)
+        return re.sub(cls.SCRIPT_PATTERN, '', nonce_free_text)
