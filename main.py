@@ -102,7 +102,7 @@ def init_bot_components(dispatcher):
         "https://docs.google.com/spreadsheets/d/e/2PACX-1vTZQrxTYwVsR9HfGg9wyIUIW_TExTaHl9K6gWgTevBx8sC4rQc_V7o9jxDFvHp7W8sW0w3mGpddb8xm/pubhtml",
         interval=10,
         alert_text="D'amore ha aggiornato! {url}")
-    damore_ping.register_chat(147948029)
+    damore_ping.register_chat(-1001791043703)
     damore_ping.activate()
 
     CommandRegister.update_commands()
