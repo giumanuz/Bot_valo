@@ -22,6 +22,6 @@ class Menu:
         update.effective_chat.send_message(cls.__MENU_TEXT, reply_markup=buttons_markup)
 
     @classmethod
-    def register_button(cls, name: str, callback: str):
-        new_button = InlineKeyboardButton(name, callback_data=callback)
+    def register_button(cls, name: str, callback_data: str):
+        new_button = InlineKeyboardButton(name, callback_data=callback_data)
         cls.buttons_matrix.append(new_button)

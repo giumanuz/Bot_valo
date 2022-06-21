@@ -8,9 +8,8 @@ from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import CallbackContext, ConversationHandler, CommandHandler, Filters, MessageHandler, \
     CallbackQueryHandler, Dispatcher
 
-from utils.os_utils import get_absolute_path
-
 from bot_components.menu import Menu
+from utils.os_utils import get_absolute_path
 
 
 def remove_file_from_top_directory(filename: str):
@@ -27,7 +26,7 @@ def load_prenotation_files():
     return testo_dichiarazione, settings
 
 
-class Prenotazione:
+class PrenotazioneFake:
     testo_dichiarazione, settings = load_prenotation_files()
 
     text_colors = settings["color"]
@@ -120,7 +119,7 @@ class Prenotazione:
     @classmethod
     def choose_edificio(cls, update: Update, _):
         chat_id = update.effective_chat.id
-        cls.prenotazioni_in_corso[chat_id] = Prenotazione()
+        cls.prenotazioni_in_corso[chat_id] = PrenotazioneFake()
 
         update.callback_query.answer()
         command_list = InlineKeyboardMarkup(
@@ -193,7 +192,7 @@ class Prenotazione:
         chat_id = update.effective_chat.id
         matricola = update.message.text
         prenotazione = cls.prenotazioni_in_corso[chat_id]
-        prenotazione.matricola = matricola
+        prenotazione.username = matricola
         prenotazione.generate_pdf()
         cls.prenotazioni_in_corso.pop(chat_id)
 
@@ -214,18 +213,18 @@ class Prenotazione:
 
 def init_prenotazioni(dispatcher: Dispatcher):
     dispatcher.add_handler(ConversationHandler(
-        entry_points=[CallbackQueryHandler(Prenotazione.choose_edificio,
+        entry_points=[CallbackQueryHandler(PrenotazioneFake.choose_edificio,
                                            pattern="prenotazione",
                                            run_async=True)],
         states={
-            0: [CallbackQueryHandler(Prenotazione.choose_aula, pattern=r"\d")],
-            1: [MessageHandler(Filters.text & ~Filters.command, Prenotazione.choose_giorno)],
-            2: [MessageHandler(Filters.text & ~Filters.command, Prenotazione.choose_dalle)],
-            3: [MessageHandler(Filters.text & ~Filters.command, Prenotazione.choose_alle)],
-            4: [MessageHandler(Filters.text & ~Filters.command, Prenotazione.choose_persona)],
-            5: [MessageHandler(Filters.text & ~Filters.command, Prenotazione.choose_matricola)],
-            6: [MessageHandler(Filters.text & ~Filters.command, Prenotazione.send_pdf)]
+            0: [CallbackQueryHandler(PrenotazioneFake.choose_aula, pattern=r"\d")],
+            1: [MessageHandler(Filters.text & ~Filters.command, PrenotazioneFake.choose_giorno)],
+            2: [MessageHandler(Filters.text & ~Filters.command, PrenotazioneFake.choose_dalle)],
+            3: [MessageHandler(Filters.text & ~Filters.command, PrenotazioneFake.choose_alle)],
+            4: [MessageHandler(Filters.text & ~Filters.command, PrenotazioneFake.choose_persona)],
+            5: [MessageHandler(Filters.text & ~Filters.command, PrenotazioneFake.choose_matricola)],
+            6: [MessageHandler(Filters.text & ~Filters.command, PrenotazioneFake.send_pdf)]
         },
-        fallbacks=[CommandHandler("quit", Prenotazione.annulla_prenotazione)]
+        fallbacks=[CommandHandler("quit", PrenotazioneFake.annulla_prenotazione)]
     ))
     Menu.register_button("Prenotazione", "prenotazione")

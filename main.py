@@ -15,7 +15,7 @@ from bot_components.games.tris import init_tris
 from bot_components.gestore import add_message_handlers
 from bot_components.insulti import Insulti
 from bot_components.menu import Menu
-from bot_components.prenotazioni import init_prenotazioni
+from bot_components.prenotazioni_frontend import init_prenotazione_prodigit
 from bot_components.risposte import Risposte
 from bot_components.settings.settings import ChatSettings
 
@@ -62,7 +62,8 @@ def check_environment_variables():
                      "FB_CLIENT_EMAIL",
                      "FB_CLIENT_ID",
                      "FB_BUCKET_NAME",
-                     "BOT_TOKEN")
+                     "BOT_TOKEN",
+                     "PRODIGIT_ENCRYPTION_KEY")
     error = False
     for env in required_envs:
         if env not in environment_variables:
@@ -84,7 +85,8 @@ def init_bot_components(dispatcher):
 
     Menu.init(dispatcher)
     BanCioppyCommand.init(dispatcher)
-    init_prenotazioni(dispatcher)
+    # init_prenotazioni(dispatcher)
+    init_prenotazione_prodigit(dispatcher)
     init_tris(dispatcher)
     init_snake(dispatcher)
     ChatSettings.init(dispatcher)
