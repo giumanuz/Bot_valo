@@ -26,6 +26,7 @@ principalmente due servizi di firebase:
   è strutturato e modificalo seguendo quella struttura, altrimenti il bot potrebbe non funzionare correttamente.
 
 
+
 + Lo [storage](https://console.firebase.google.com/u/0/project/botvalodatabase/storage), che viene usato per le foto. Si
   trovano tutte dentro la cartella `images/categoria/`, dove `categoria` è una delle sottocartelle. **Attenzione:** il
   nome delle categorie
