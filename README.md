@@ -3,9 +3,9 @@
 <h1 align="center">
 <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/NewTux.svg/1707px-NewTux.svg.png" width="100" />
 <br>
-Bot_valo
+Botvalo
 </h1>
-<h3 align="center">📍 Block out the Ordinary with Bot_valo!</h3>
+<h3 align="center">📍 Block out the Ordinary with Botvalo!</h3>
 <h3 align="center">⚙️ Developed with the software and tools below:</h3>
 
 <p align="center">
@@ -281,7 +281,7 @@ Before you begin, ensure that you have the following prerequisites installed:
 
 ### 🖥 Installation
 
-1. Clone the Bot_valo repository:
+1. Clone the  repository:
 ```sh
 git clone https://github.com/giumanuz/Bot_valo
 ```
