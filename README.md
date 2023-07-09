@@ -281,7 +281,11 @@ Before you begin, ensure that you have the following prerequisites installed:
 
 ### 🖥 Installation
 
+<<<<<<< HEAD
 1. Clone the  repository:
+=======
+1. Clone the Botvalo repository:
+>>>>>>> a852624d45de3c5975f3ceb32e3bc815981b3814
 ```sh
 git clone https://github.com/giumanuz/Bot_valo
 ```
